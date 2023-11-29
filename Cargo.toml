@@ -16,3 +16,10 @@ readme = "README.md"
 
 [dependencies]
 pest = "2.7"
+
+[lib]
+crate-type = ["lib"]
+name = "kers"
+
+[[bin]]
+name = "kers"
