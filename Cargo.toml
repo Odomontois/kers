@@ -8,8 +8,8 @@ license = "MIT"
 repository = "https://github.com/odomontois/kers/"
 homepage = "https://github.com/odomontois/kers/"
 documentation = "https://github.com/odomontois/kers/"
-keywords = ["language", "dependent types", "typechecking", "parsing"]
-categories = ["language"]
+keywords = ["language", "types", "dependent-types", "typechecking", "parsing"]
+categories = ["language", "script"]
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
