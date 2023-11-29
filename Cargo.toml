@@ -1,0 +1,18 @@
+[package]
+name = "kers"
+version = "0.1.0"
+edition = "2021"
+authors = ["Oleg Nizhnikov"]
+description = "Dependently type Object-Oriented Data Script"
+license = "MIT"
+repository = "https://github.com/odomontois/kers/"
+homepage = "https://github.com/odomontois/kers/"
+documentation = "https://github.com/odomontois/kers/"
+keywords = ["language", "dependent types", "typechecking", "parsing"]
+categories = ["language"]
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pest = "2.7"
