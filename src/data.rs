@@ -15,6 +15,7 @@ pub enum Value {
 
 pub struct Calculate;
 
+#[derive(Debug, Clone)]
 pub enum Primitive {
     Long(u64),
     Text(String),
@@ -27,6 +28,7 @@ pub struct Record {
 
 
 
+#[derive(Debug, Clone)]
 pub enum Type {
     Universe,
     Bool,
@@ -35,3 +37,4 @@ pub enum Type {
     Function { dom: Arc<Type>, codom: Arc<Type> },
     And { left: Arc<Type>, right: Arc<Type> },
 }
+

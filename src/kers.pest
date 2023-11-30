@@ -1,0 +1,27 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+natural = { ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
+
+char = {
+  | !("\"" | "\\" | "\'") ~ ANY
+  | "\\" ~ ("\"" | "\'" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+  | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+double_quoted_char = _{ char | "'" }
+
+single_quoted_char = _{ char | "\""}
+
+double_quoted_string = @{ "\"" ~ double_quoted_char* ~ "\"" }
+
+single_quoted_string = @{ "\'" ~ single_quoted_char* ~ "\'" }
+
+string = { double_quoted_string | single_quoted_string }
+
+value      = { string | natural }
+expression = { value }
+
+identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }
+assignment =  { identifier ~ "=" ~ expression }
+object     =  { "{" ~ assignment* ~ "}" }
+term       =  { object }

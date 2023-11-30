@@ -16,6 +16,9 @@ readme = "README.md"
 
 [dependencies]
 pest = "2.7"
+pest_derive = "2.7"
+thiserror = "1.0"
+itertools = "0.12"
 
 [lib]
 crate-type = ["lib"]
