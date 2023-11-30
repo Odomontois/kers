@@ -1,4 +1,3 @@
-
 use std::sync::Arc;
 
 use super::{Primitive, Str, Type};
@@ -9,6 +8,7 @@ pub enum Term {
     Append { left: Arc<Term>, right: Arc<Term> },
     Prim(Primitive),
     Get { name: Str, index: usize },
+    Empty,
     Set { name: Str, value: Arc<Term> },
     Box(Arc<Term>),
     Lambda { dom: Arc<Term>, body: Arc<Term> },
@@ -18,11 +18,17 @@ pub enum Term {
 pub trait ToTerm {
     fn to_term(self) -> Term;
 
-    fn to_arc_term(self) -> Arc<Term> where Self: Sized {
+    fn to_arc_term(self) -> Arc<Term>
+    where
+        Self: Sized,
+    {
         Arc::new(self.to_term())
     }
 
-    fn to_arc_ok<E>(self) -> Result<Arc<Term>, E> where Self: Sized {
+    fn to_arc_ok<E>(self) -> Result<Arc<Term>, E>
+    where
+        Self: Sized,
+    {
         Ok(self.to_arc_term())
     }
 }
@@ -33,6 +39,11 @@ impl ToTerm for Term {
     }
 }
 
+impl ToTerm for String {
+    fn to_term(self) -> Term {
+        Term::Prim(Primitive::Text(self))
+    }
+}
 
 impl ToTerm for Primitive {
     fn to_term(self) -> Term {
@@ -45,4 +56,3 @@ impl ToTerm for Type {
         Term::Type(self)
     }
 }
-
