@@ -7,7 +7,7 @@ use pest::{
 };
 use pest_derive::Parser;
 
-use crate::{Primitive, Term, ToTerm};
+use crate::{Term, ToTerm};
 
 mod error;
 pub use error::SyntaxError;
@@ -114,13 +114,17 @@ fn decode_object(object: Parsed) -> ParsingTerm {
         .unwrap_or(Term::Empty.to_arc_ok())
 }
 
+fn decode_natural(term: Parsed) -> Parsing<u64> {
+    Ok(term.as_str().parse()?)
+}
+
 fn decode_term(term: Parsed) -> ParsingTerm {
     let term = term.into_inner().next().ok_or("Empty Term")?;
 
     match term.as_rule() {
         Rule::object => decode_object(term),
         Rule::string => decode_string(term)?.to_arc_ok(),
-        Rule::natural => todo!(),
+        Rule::natural => decode_natural(term)?.to_arc_ok(),
         rule => Err(SyntaxError::Other(format!("Not a term {rule:?}"))), // Rule::string =>
     }
 }
@@ -150,7 +154,8 @@ impl<A, E: Display> UnwrapDisplay for Result<A, E> {
 fn check() {
     let input = "{
        greet = 'Hello',  
-       'target' : \"World\"
+       'target' : \"World\";
+       'my age' = 38
     }";
 
     KersParser::parse(Rule::single_quoted_string, "\'Hello\'").unwrap_print();

@@ -39,6 +39,12 @@ impl ToTerm for Term {
     }
 }
 
+impl ToTerm for u64 {
+    fn to_term(self) -> Term {
+        Term::Prim(Primitive::Long(self))
+    }
+}
+
 impl ToTerm for String {
     fn to_term(self) -> Term {
         Term::Prim(Primitive::Text(self))

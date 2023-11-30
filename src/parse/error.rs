@@ -7,9 +7,11 @@ use super::Rule;
 pub enum SyntaxError {
     #[error("parse error {0}")]
     ParseError(#[from] PestError<Rule>),
+    #[error("{0}")]
+    ParseNumberError(#[from] std::num::ParseIntError),
     #[error("invalid character: {0}")]
     CharError(String),
-    #[error("syntax error: {0}")]
+    #[error("{0}")]
     Other(String),
 }
 
