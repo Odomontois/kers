@@ -7,7 +7,7 @@ use super::Rule;
 pub enum SyntaxError {
     #[error("parse error {0}")]
     ParseError(#[from] PestError<Rule>),
-    #[error("other error {0}")]
+    #[error("syntax error: {0}")]
     Other(String),
 }
 

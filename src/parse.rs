@@ -1,7 +1,10 @@
 use core::panic;
 use std::{borrow::Cow, fmt::Display, sync::Arc};
 
-use pest::{iterators::Pairs, Parser};
+use pest::{
+    iterators::{Pair, Pairs},
+    Parser,
+};
 use pest_derive::Parser;
 
 use crate::{Primitive, Term, ToTerm, Type};
@@ -15,39 +18,43 @@ pub struct KersParser;
 
 trait PairsExt: Sized {
     type R;
-    fn read(&mut self, rule: Self::R) -> Result<Self, SyntaxError>;
+    type P;
+    fn read(&mut self, rule: Self::R) -> Result<Self::P, SyntaxError>;
 }
 
-impl<R: Eq> PairsExt for pest::iterators::Pairs<'_, R>
+impl<'a, R: Eq> PairsExt for pest::iterators::Pairs<'a, R>
 where
     R: pest::RuleType,
 {
     type R = R;
-    fn read(&mut self, rule: Self::R) -> Result<Self, SyntaxError> {
+    type P = Pair<'a, R>;
+    fn read(&mut self, rule: Self::R) -> Result<Self::P, SyntaxError> {
         let pair = self.next().unwrap();
         if pair.as_rule() != rule {
             return Err(format!("expected {:?}, got {:?}", rule, pair.as_rule()))?;
         }
-        Ok(pair.into_inner())
+        Ok(pair)
     }
 }
 
-type Parsed<'a> = Pairs<'a, Rule>;
+type Parsed<'a> = Pair<'a, Rule>;
 
 fn decode_assignment(mut input: Parsed) -> Result<Arc<Term>, SyntaxError> {
-    let name = input.read(Rule::identifier)?;
+    let mut input = input.into_inner();
+    let name = input.read(Rule::identifier)?.as_str().to_string();
     let value = input.read(Rule::expression)?;
     Term::Set {
-        name: name.as_str().to_string().into(),
+        name: name.into(),
         value: Primitive::Text(value.as_str().to_string()).to_arc_term(),
     }
     .to_arc_ok()
 }
 
 fn decode_term(mut input: Parsed) -> Result<Arc<Term>, SyntaxError> {
-    let object = input.read(Rule::object)?;
+    let object = input.into_inner().read(Rule::object)?;
     object
-        .map(|assignment| decode_assignment(assignment.into_inner()))
+        .into_inner()
+        .map(|assignment| decode_assignment(assignment))
         .reduce(|left, right| {
             let left = left?;
             let right = right?;
@@ -90,6 +97,7 @@ fn check() {
 
     KersParser::parse(Rule::single_quoted_string, "\'Hello\'").unwrap_print();
     let res = parse_term(input).unwrap_print();
+    println!("{:?}", res);
 }
 
 #[cfg(test)]

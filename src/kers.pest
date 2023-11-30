@@ -21,7 +21,9 @@ string = { double_quoted_string | single_quoted_string }
 value      = { string | natural }
 expression = { value }
 
-identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }
-assignment =  { identifier ~ "=" ~ expression }
+record_assigner = _{ ":" | "=" }
+
+identifier =  @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }
+assignment =  { identifier ~ record_assigner ~ expression }
 object     =  { "{" ~ assignment* ~ "}" }
 term       =  { object }
