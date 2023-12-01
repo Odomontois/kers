@@ -1,6 +1,21 @@
 use std::sync::Arc;
 
-use super::{Primitive, Str, Type};
+use super::{Primitive, Str};
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GenType<T> {
+    Universe,
+    Bool,
+    Long,
+    Text,
+    Field { name: Str, typ: Arc<T> },
+    Function { dom: Arc<T>, codom: Arc<T> },
+    And { left: Arc<T>, right: Arc<T> },
+    Array { elem: Arc<T> },
+}
+
+pub type Type = GenType<Term>;
+pub type NormalType = GenType<Type>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Term {
@@ -13,6 +28,12 @@ pub enum Term {
     Box(Arc<Term>),
     Lambda { dom: Arc<Term>, body: Arc<Term> },
     Apply { func: Arc<Term>, args: Arc<Term> },
+}
+
+impl Default for Term {
+    fn default() -> Self {
+        Term::Empty
+    }
 }
 
 impl Term {

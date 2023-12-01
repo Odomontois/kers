@@ -1,25 +1,30 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
+term       =  { lam_sequence }
+lam_sequence = { intersection ~ ("->" ~ intersection)* }
+intersection = { application ~ ("&" ~ application)* }
+application  = { atomic_term ~ (atomic_term)* }
+atomic_term  = { record | string | natural | identifier | record_type | "(" ~ term ~ ")" }
+
+separator =  { "," | ";" }
+key        =  { identifier | string }
+
+record           =  { "{" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ "}" }
+assignment       =  { key ~ "=" ~ term }
+
+record_type = { "[" ~ ascription ~ (separator ~ ascription)* ~ separator? ~ "]" }
+ascription  = { key ~ ":" ~ term }
+
+identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }
+
 natural = { ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
 
+string               =  { double_quoted_string | single_quoted_string }
+double_quoted_string = ${ "\"" ~ (!"\"" ~ char)* ~ "\"" }
+single_quoted_string = ${ "\'" ~ (!"\'" ~ char)* ~ "\'" }
+
 char = {
-  
   | !"\\" ~ ANY
   | "\\" ~ ("\"" | "\'" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
   | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
-
-double_quoted_string = ${ "\"" ~ (!"\"" ~ char)* ~ "\"" }
-single_quoted_string = ${ "\'" ~ (!"\'" ~ char)* ~ "\'" }
-
-string = { double_quoted_string | single_quoted_string }
-
-record_assigner = _{ ":" | "=" }
-
-identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }
-key        =  { identifier | string }
-
-assignment       = { key ~ record_assigner ~ term }
-record_separator = { "," | ";" }
-object           = { "{" ~ assignment ~ (record_separator ~ assignment)* ~ record_separator? ~ "}" }
-term             = { object | string | natural | identifier }

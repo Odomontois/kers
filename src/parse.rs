@@ -7,7 +7,7 @@ use pest::{
 };
 use pest_derive::Parser;
 
-use crate::{Term, ToTerm};
+use crate::{Term, ToTerm, Type};
 
 mod error;
 pub use error::SyntaxError;
@@ -97,21 +97,89 @@ fn decode_assignment(input: Parsed) -> ParsingTerm {
     Term::Set { name, value }.to_arc_ok()
 }
 
-fn decode_object(object: Parsed) -> ParsingTerm {
-    object
-        .into_inner()
-        .filter(|segment| segment.as_rule() == Rule::assignment)
-        .map(decode_assignment)
-        .reduce(|left, right| {
-            let left = left?;
-            let right = right?;
-            Term::Append {
-                left: left.clone(),
-                right: right.clone(),
-            }
-            .to_arc_ok()
-        })
-        .unwrap_or(Term::Empty.to_arc_ok())
+fn decode_record(expr: Parsed) -> ParsingTerm {
+    decode_sequence(
+        expr,
+        Rule::assignment,
+        decode_assignment,
+        |left, right| Term::Append { left, right }.to_arc_term(),
+        Assocciation::Left,
+    )
+}
+
+fn decode_lam_sequence(expr: Parsed) -> ParsingTerm {
+    decode_sequence(
+        expr,
+        Rule::intersection,
+        decode_intersection,
+        |dom, codom| Type::Function { dom, codom }.to_arc_term(),
+        Assocciation::Right,
+    )
+}
+
+fn decode_intersection(expr: Parsed) -> ParsingTerm {
+    decode_sequence(
+        expr,
+        Rule::application,
+        decode_application,
+        |left, right| Type::And { left, right }.to_arc_term(),
+        Assocciation::Left,
+    )
+}
+
+fn decode_application(expr: Parsed) -> ParsingTerm {
+    decode_sequence(
+        expr,
+        Rule::atomic_term,
+        decode_atomic_term,
+        |func, args| Term::Apply { func, args }.to_arc_term(),
+        Assocciation::Left,
+    )
+}
+
+fn decode_atomic_term(term: Parsed) -> ParsingTerm {
+    let term = term.into_inner().next().ok_or("Empty Term")?;
+
+    match term.as_rule() {
+        Rule::record => decode_record(term),
+        Rule::string => decode_string(term)?.to_arc_ok(),
+        Rule::natural => decode_natural(term)?.to_arc_ok(),
+        Rule::identifier => decode_get(term),
+        rule => Err(SyntaxError::Other(format!("Not an atomic term {rule:?}"))), // Rule::string =>
+    }
+}
+
+fn decode_term(term: Parsed) -> ParsingTerm {
+    decode_lam_sequence(term.into_inner().read(Rule::lam_sequence)?)
+}
+
+enum Assocciation {
+    Left,
+    Right,
+}
+
+fn decode_sequence<A: Default>(
+    expr: Parsed,
+    inner_rule: Rule,
+    inner: impl Fn(Parsed) -> Parsing<A>,
+    combine: impl Fn(A, A) -> A,
+    association: Assocciation,
+) -> Parsing<A> {
+    let inners = expr.into_inner().filter(|s| s.as_rule() == inner_rule);
+    let inners = inners.map(inner);
+
+    match association {
+        Assocciation::Left => combine_sequence(inners, combine),
+        Assocciation::Right => combine_sequence(inners.rev(), combine),
+    }
+}
+
+fn combine_sequence<A: Default>(
+    iter: impl Iterator<Item = Parsing<A>>,
+    combine: impl Fn(A, A) -> A,
+) -> Parsing<A> {
+    iter.reduce(|left, right| Ok(combine(left?, right?)))
+        .unwrap_or_else(|| Ok(A::default()))
 }
 
 fn decode_natural(term: Parsed) -> Parsing<u64> {
@@ -119,23 +187,8 @@ fn decode_natural(term: Parsed) -> Parsing<u64> {
 }
 
 fn decode_get(term: Parsed) -> ParsingTerm {
-    Term::Get {
-        name: term.as_str().to_string().into(),
-        index: 0,
-    }
-    .to_arc_ok()
-}
-
-fn decode_term(term: Parsed) -> ParsingTerm {
-    let term = term.into_inner().next().ok_or("Empty Term")?;
-
-    match term.as_rule() {
-        Rule::object => decode_object(term),
-        Rule::string => decode_string(term)?.to_arc_ok(),
-        Rule::natural => decode_natural(term)?.to_arc_ok(),
-        Rule::identifier => decode_get(term),
-        rule => Err(SyntaxError::Other(format!("Not a term {rule:?}"))), // Rule::string =>
-    }
+    let name = term.to_string().into();
+    Term::Get { name, index: 0 }.to_arc_ok()
 }
 
 #[allow(unused)]
@@ -170,7 +223,7 @@ fn check_various_simple_stuff() {
 fn check_object() {
     let input = "{
        greet = 'Hello',  
-       'target' : \"World\";
+       'target' = \"World\";
        'my \"agy\"' = 38,
        xxx = xxx
     }";
@@ -187,3 +240,6 @@ fn check_object() {
         .to_arc_term()
     )
 }
+
+#[test]
+fn check_record_type() {}

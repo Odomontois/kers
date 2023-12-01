@@ -31,13 +31,3 @@ pub struct Record {
 
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Type {
-    Universe,
-    Bool,
-    Long,
-    Text,
-    Function { dom: Arc<Type>, codom: Arc<Type> },
-    And { left: Arc<Type>, right: Arc<Type> },
-}
-
