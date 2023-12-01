@@ -118,6 +118,14 @@ fn decode_natural(term: Parsed) -> Parsing<u64> {
     Ok(term.as_str().parse()?)
 }
 
+fn decode_get(term: Parsed) -> ParsingTerm {
+    Term::Get {
+        name: term.as_str().to_string().into(),
+        index: 0,
+    }
+    .to_arc_ok()
+}
+
 fn decode_term(term: Parsed) -> ParsingTerm {
     let term = term.into_inner().next().ok_or("Empty Term")?;
 
@@ -125,6 +133,7 @@ fn decode_term(term: Parsed) -> ParsingTerm {
         Rule::object => decode_object(term),
         Rule::string => decode_string(term)?.to_arc_ok(),
         Rule::natural => decode_natural(term)?.to_arc_ok(),
+        Rule::identifier => decode_get(term),
         rule => Err(SyntaxError::Other(format!("Not a term {rule:?}"))), // Rule::string =>
     }
 }
@@ -151,16 +160,30 @@ impl<A, E: Display> UnwrapDisplay for Result<A, E> {
 }
 
 #[test]
-fn check() {
-    let input = "{
-       greet = 'Hello',  
-       'target' : \"World\";
-       'my age' = 38
-    }";
-
+fn check_various_simple_stuff() {
     KersParser::parse(Rule::single_quoted_string, "\'Hello\'").unwrap_print();
     KersParser::parse(Rule::string, "\'Hello\'").unwrap_print();
     KersParser::parse(Rule::assignment, "greet = 'Hello'").unwrap_print();
+}
+
+#[test]
+fn check_object() {
+    let input = "{
+       greet = 'Hello',  
+       'target' : \"World\";
+       'my \"agy\"' = 38,
+       xxx = xxx
+    }";
+
     let res = parse_term(input).unwrap_print();
-    println!("{:?}", res);
+    assert_eq!(
+        res,
+        [
+            ("greet", "Hello".to_term()),
+            ("target", "World".to_term()),
+            ("my \"agy\"", 38u64.to_term()),
+            ("xxx", Term::get("xxx"))
+        ]
+        .to_arc_term()
+    )
 }

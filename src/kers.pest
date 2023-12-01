@@ -3,28 +3,23 @@ WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 natural = { ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
 
 char = {
-  | !("\"" | "\\" | "\'") ~ ANY
+  
+  | !"\\" ~ ANY
   | "\\" ~ ("\"" | "\'" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
   | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 
-double_quoted_char = _{ char | "\'" }
-
-single_quoted_char = _{ char | "\"" }
-
-double_quoted_string = ${ "\"" ~ double_quoted_char* ~ "\"" }
-
-single_quoted_string = ${ "\'" ~ single_quoted_char* ~ "\'" }
+double_quoted_string = ${ "\"" ~ (!"\"" ~ char)* ~ "\"" }
+single_quoted_string = ${ "\'" ~ (!"\'" ~ char)* ~ "\'" }
 
 string = { double_quoted_string | single_quoted_string }
 
 record_assigner = _{ ":" | "=" }
 
 identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }
+key        =  { identifier | string }
 
-key = { identifier | string }
-
-assignment       =  { key ~ record_assigner ~ term }
-record_separator =  { "," | ";" }
-object           =  { "{" ~ assignment ~ (record_separator ~ assignment)* ~ "}" }
-term             =  { object | string | natural }
+assignment       = { key ~ record_assigner ~ term }
+record_separator = { "," | ";" }
+object           = { "{" ~ assignment ~ (record_separator ~ assignment)* ~ record_separator? ~ "}" }
+term             = { object | string | natural | identifier }

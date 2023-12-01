@@ -4,6 +4,7 @@ use super::Term;
 
 pub type Str = Cow<'static, str>;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Value {
     Point,
     Prim(Primitive),
@@ -13,14 +14,16 @@ pub enum Value {
     Box { context: Arc<Value>, proceed: Term },
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Calculate;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Primitive {
     Long(u64),
     Text(String),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Record {
     pub values: Vec<Value>,
     pub names: Arc<Vec<Str>>,
@@ -28,7 +31,7 @@ pub struct Record {
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
     Universe,
     Bool,
