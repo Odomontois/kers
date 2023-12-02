@@ -28,7 +28,7 @@ pub enum Term {
     Box(Arc<Term>),
     Lambda { dom: Arc<Term>, body: Arc<Term> },
     Unlambda(Arc<Term>),
-    Then { left: Arc<Term>, right: Arc<Term> },
+    Then { first: Arc<Term>, next: Arc<Term> },
     Reflect,
 }
 
@@ -45,8 +45,8 @@ impl Term {
 
     pub fn apply(func: Arc<Term>, args: Arc<Term>) -> Term {
         Term::Then {
-            left: Term::Unlambda(func).to_arc_term(),
-            right: args,
+            first: args,
+            next: Term::Unlambda(func).to_arc_term(),
         }
     }
 }

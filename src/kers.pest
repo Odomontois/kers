@@ -1,13 +1,16 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
-term         = { lam_sequence }
-lam_sequence = { intersection ~ ("->" ~ intersection)* }
-intersection = { application ~ ("&" ~ application)* }
-application  = { then_chain ~ (then_chain)* }
-then_chain   = { atomic_term ~ ("." ~ atomic_term)* }
-atomic_term  = { record | string | natural | identifier | record_type | "(" ~ term ~ ")" }
+term          = { lam_sequence }
+lam_sequence  = { intersection ~ ("->" ~ intersection)* }
+intersection  = { application ~ ("&" ~ application)* }
+application   = { then_chain ~ (then_chain)* }
+then_chain    = { modified_term ~ ("." ~ modified_term)* }
+modified_term = { modifier* ~ atomic_term }
+atomic_term   = { reflect | record | string | natural | identifier | record_type | "(" ~ term ~ ")" }
+modifier      = { "~" | "@" }
+reflect       = { "@@" }
 
-separator = { "," | ";" }
+separator = _{ "," | ";" }
 key       = { identifier | string }
 
 record     = { "{" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ "}" }

@@ -1,10 +1,7 @@
 use core::panic;
 use std::{fmt::Display, sync::Arc};
 
-use pest::{
-    iterators::{Pair, Pairs},
-    Parser,
-};
+use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
 use crate::{Term, ToTerm, Type};
@@ -16,26 +13,34 @@ pub use error::SyntaxError;
 #[grammar = "kers.pest"]
 pub struct KersParser;
 
-trait PairsExt: Sized {
-    type R;
-    type P;
-    fn read(&mut self, rule: Self::R) -> Result<Self::P, SyntaxError>;
+trait PairsExt: Iterator {
+    fn read(&mut self, rule: Rule) -> Result<Self::Item, SyntaxError>;
 }
 
-impl<'a, R: Eq> PairsExt for Pairs<'a, R>
+trait PairExt {
+    fn check(&self, rule: Rule) -> Result<(), SyntaxError>;
+}
+
+impl<'a, I> PairsExt for I
 where
-    R: pest::RuleType,
+    I: Iterator<Item = Pair<'a, Rule>>,
 {
-    type R = R;
-    type P = Pair<'a, R>;
-    fn read(&mut self, rule: Self::R) -> Result<Self::P, SyntaxError> {
+    fn read(&mut self, rule: Rule) -> Result<Self::Item, SyntaxError> {
         let pair = self
             .next()
             .ok_or_else(|| format!("expected {rule:?} got nothing"))?;
-        if pair.as_rule() != rule {
-            return Err(format!("expected {rule:?}, got {:?}", pair.as_rule()))?;
-        }
+        pair.check(rule)?;
         Ok(pair)
+    }
+}
+
+impl<'a> PairExt for Pair<'a, Rule> {
+    fn check(&self, rule: Rule) -> Result<(), SyntaxError> {
+        let got = self.as_rule();
+        if got != rule {
+            return Err(format!("expected {rule:?}, got {got:?}"))?;
+        }
+        Ok(())
     }
 }
 
@@ -140,11 +145,24 @@ fn decode_application(expr: Parsed) -> ParsingTerm {
 fn decode_then_chain(expr: Parsed) -> ParsingTerm {
     decode_sequence(
         expr,
-        Rule::atomic_term,
-        decode_atomic_term,
-        |left, right| Term::Then { left, right }.to_arc_term(),
+        Rule::modified_term,
+        decode_modifed_term,
+        |first, next| Term::Then { first, next }.to_arc_term(),
         Assocciation::Left,
     )
+}
+
+fn decode_modifed_term(expr: Parsed) -> ParsingTerm {
+    let mut subs = expr.into_inner().rev();
+    let atomic = decode_atomic_term(subs.read(Rule::atomic_term)?)?;
+    subs.try_fold(atomic, |term, sub: Pair<'_, Rule>| {
+        sub.check(Rule::modifier)?;
+        match sub.as_str() {
+            "~" => Term::Box(term).to_arc_ok(),
+            "@" => Term::Unlambda(term).to_arc_ok(),
+            s => Err(SyntaxError::Other(format!("Unknown modifier {s}"))),
+        }
+    })
 }
 
 fn decode_atomic_term(term: Parsed) -> ParsingTerm {
@@ -155,6 +173,7 @@ fn decode_atomic_term(term: Parsed) -> ParsingTerm {
         Rule::string => decode_string(term)?.to_arc_ok(),
         Rule::natural => decode_natural(term)?.to_arc_ok(),
         Rule::identifier => decode_get(term),
+        Rule::reflect => Term::Reflect.to_arc_ok(),
         rule => Err(SyntaxError::Other(format!("Not an atomic term {rule:?}"))), // Rule::string =>
     }
 }
@@ -175,8 +194,10 @@ fn decode_sequence<A: Default>(
     combine: impl Fn(A, A) -> A,
     association: Assocciation,
 ) -> Parsing<A> {
-    let inners = expr.into_inner().filter(|s| s.as_rule() == inner_rule);
-    let inners = inners.map(inner);
+    let inners = expr.into_inner().map(|s| {
+        s.check(inner_rule)?;
+        inner(s)
+    });
 
     match association {
         Assocciation::Left => combine_sequence(inners, combine),
@@ -227,7 +248,9 @@ fn check_various_simple_stuff() {
     KersParser::parse(Rule::single_quoted_string, "\'Hello\'").unwrap_print();
     KersParser::parse(Rule::string, "\'Hello\'").unwrap_print();
     KersParser::parse(Rule::assignment, "greet = 'Hello'").unwrap_print();
-    KersParser::parse(Rule::identifier, "greet").unwrap_print().as_str();
+    KersParser::parse(Rule::identifier, "greet")
+        .unwrap_print()
+        .as_str();
 }
 
 #[test]
