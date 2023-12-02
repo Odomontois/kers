@@ -1,16 +1,17 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
-term       =  { lam_sequence }
+term         = { lam_sequence }
 lam_sequence = { intersection ~ ("->" ~ intersection)* }
 intersection = { application ~ ("&" ~ application)* }
-application  = { atomic_term ~ (atomic_term)* }
+application  = { then_chain ~ (then_chain)* }
+then_chain   = { atomic_term ~ ("." ~ atomic_term)* }
 atomic_term  = { record | string | natural | identifier | record_type | "(" ~ term ~ ")" }
 
-separator =  { "," | ";" }
-key        =  { identifier | string }
+separator = { "," | ";" }
+key       = { identifier | string }
 
-record           =  { "{" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ "}" }
-assignment       =  { key ~ "=" ~ term }
+record     = { "{" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ "}" }
+assignment = { key ~ "=" ~ term }
 
 record_type = { "[" ~ ascription ~ (separator ~ ascription)* ~ separator? ~ "]" }
 ascription  = { key ~ ":" ~ term }
@@ -24,6 +25,7 @@ double_quoted_string = ${ "\"" ~ (!"\"" ~ char)* ~ "\"" }
 single_quoted_string = ${ "\'" ~ (!"\'" ~ char)* ~ "\'" }
 
 char = {
+  
   | !"\\" ~ ANY
   | "\\" ~ ("\"" | "\'" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
   | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})

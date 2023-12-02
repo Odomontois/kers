@@ -22,12 +22,14 @@ pub enum Term {
     Type(Type),
     Append { left: Arc<Term>, right: Arc<Term> },
     Prim(Primitive),
-    Get { name: Str, index: usize },
+    Get(Str),
     Empty,
     Set { name: Str, value: Arc<Term> },
     Box(Arc<Term>),
     Lambda { dom: Arc<Term>, body: Arc<Term> },
-    Apply { func: Arc<Term>, args: Arc<Term> },
+    Unlambda(Arc<Term>),
+    Then { left: Arc<Term>, right: Arc<Term> },
+    Reflect,
 }
 
 impl Default for Term {
@@ -38,9 +40,13 @@ impl Default for Term {
 
 impl Term {
     pub fn get(name: &str) -> Term {
-        Term::Get {
-            name: name.to_string().into(),
-            index: 0,
+        Term::Get(name.to_string().into())
+    }
+
+    pub fn apply(func: Arc<Term>, args: Arc<Term>) -> Term {
+        Term::Then {
+            left: Term::Unlambda(func).to_arc_term(),
+            right: args,
         }
     }
 }

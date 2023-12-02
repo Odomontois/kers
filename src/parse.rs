@@ -130,9 +130,19 @@ fn decode_intersection(expr: Parsed) -> ParsingTerm {
 fn decode_application(expr: Parsed) -> ParsingTerm {
     decode_sequence(
         expr,
+        Rule::then_chain,
+        decode_then_chain,
+        |func, args| Term::apply(func, args).to_arc_term(),
+        Assocciation::Left,
+    )
+}
+
+fn decode_then_chain(expr: Parsed) -> ParsingTerm {
+    decode_sequence(
+        expr,
         Rule::atomic_term,
         decode_atomic_term,
-        |func, args| Term::Apply { func, args }.to_arc_term(),
+        |left, right| Term::Then { left, right }.to_arc_term(),
         Assocciation::Left,
     )
 }
@@ -187,8 +197,8 @@ fn decode_natural(term: Parsed) -> Parsing<u64> {
 }
 
 fn decode_get(term: Parsed) -> ParsingTerm {
-    let name = term.to_string().into();
-    Term::Get { name, index: 0 }.to_arc_ok()
+    let name = term.as_str().to_string().into();
+    Term::Get(name).to_arc_ok()
 }
 
 #[allow(unused)]
@@ -217,6 +227,7 @@ fn check_various_simple_stuff() {
     KersParser::parse(Rule::single_quoted_string, "\'Hello\'").unwrap_print();
     KersParser::parse(Rule::string, "\'Hello\'").unwrap_print();
     KersParser::parse(Rule::assignment, "greet = 'Hello'").unwrap_print();
+    KersParser::parse(Rule::identifier, "greet").unwrap_print().as_str();
 }
 
 #[test]
