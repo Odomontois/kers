@@ -1,6 +1,7 @@
 mod data;
-mod term;
+
 mod parse;
+pub mod language;
 
 pub use data::*;
-pub use term::*;
+pub use language::term::*;
