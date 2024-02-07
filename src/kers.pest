@@ -6,17 +6,19 @@ intersection  = { application ~ ("&" ~ application)* }
 application   = { then_chain ~ (then_chain)* }
 then_chain    = { modified_term ~ ("." ~ modified_term)* }
 modified_term = { (modifier ~ WHITESPACE)* ~ atomic_term }
-atomic_term   = { reflect | record | string | natural | identifier | record_type | "(" ~ term ~ ")" }
+atomic_term   = { reflect | record | string | natural | identifier | record_type | "(" ~ term ~ ")" | empty }
+empty         = { "()" }
 modifier      = { "~" | "@" }
 reflect       = { "@@" }
+universe      = { "*" }
 
 separator = _{ "," | ";" }
-key       = { identifier | string }
+key       =  { identifier | string }
 
-record     = { "{" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ "}" }
+record     = { "(" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ ")" }
 assignment = { key ~ "=" ~ term }
 
-record_type = { "[" ~ ascription ~ (separator ~ ascription)* ~ separator? ~ "]" }
+record_type = { "{" ~ ascription ~ (separator ~ ascription)* ~ separator? ~ "}" }
 ascription  = { key ~ ":" ~ term }
 
 identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }

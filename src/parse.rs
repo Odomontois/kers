@@ -80,7 +80,7 @@ fn decode_char(input: Parsed) -> Parsing<char> {
 
 fn decode_string(string: Parsed) -> Parsing<String> {
     let s = string.as_str();
-    let error = || SyntaxError::Other(format!("{s} is not a string"));
+    let error = || -> SyntaxError { format!("{s} is not a string").into() };
     let contents = string.into_inner().next().ok_or_else(error)?;
     contents.into_inner().map(decode_char).collect()
 }
@@ -91,15 +91,8 @@ fn decode_key(key: Parsed) -> Parsing<String> {
     match first.as_rule() {
         Rule::identifier => Ok(first.as_str().to_string()),
         Rule::string => decode_string(first),
-        rule => Err(SyntaxError::Other(format!("Not an identifier {rule:?}"))),
+        rule => Err(format!("Not an identifier {rule:?}").into()),
     }
-}
-
-fn decode_assignment(input: Parsed) -> ParsingTerm {
-    let mut input = input.into_inner();
-    let name = decode_key(input.read(Rule::key)?)?.into();
-    let value = decode_term(input.read(Rule::term)?)?;
-    Term::Set { name, value }.to_arc_ok()
 }
 
 fn decode_record(expr: Parsed) -> ParsingTerm {
@@ -152,6 +145,34 @@ fn decode_then_chain(expr: Parsed) -> ParsingTerm {
     )
 }
 
+fn decode_record_type(expr: Parsed) -> ParsingTerm {
+    decode_sequence(
+        expr,
+        Rule::ascription,
+        decode_ascription,
+        |left, right| Type::And { left, right }.to_arc_term(),
+        Assocciation::Left,
+    )
+}
+
+fn decode_key_value_pair<R: ToTerm>(
+    input: Parsed,
+    fterm: impl FnOnce(String, Arc<Term>) -> R,
+) -> ParsingTerm {
+    let mut input = input.into_inner();
+    let name = decode_key(input.read(Rule::key)?)?.into();
+    let value = decode_term(input.read(Rule::term)?)?;
+    fterm(name, value).to_arc_ok()
+}
+
+fn decode_assignment(input: Parsed) -> ParsingTerm {
+    decode_key_value_pair(input, |name, value| Term::Set { name, value })
+}
+
+fn decode_ascription(expr: Parsed) -> ParsingTerm {
+    decode_key_value_pair(expr, |name, typ| Type::Field { name, typ })
+}
+
 fn decode_modifed_term(expr: Parsed) -> ParsingTerm {
     let mut subs = expr.into_inner().rev();
     let atomic = decode_atomic_term(subs.read(Rule::atomic_term)?)?;
@@ -160,7 +181,7 @@ fn decode_modifed_term(expr: Parsed) -> ParsingTerm {
         match sub.as_str() {
             "~" => Term::Box(term).to_arc_ok(),
             "@" => Term::Unlambda(term).to_arc_ok(),
-            s => Err(SyntaxError::Other(format!("Unknown modifier {s}"))),
+            s => Err(format!("Unknown modifier {s}").into()),
         }
     })
 }
@@ -174,7 +195,10 @@ fn decode_atomic_term(term: Parsed) -> ParsingTerm {
         Rule::natural => decode_natural(term)?.to_arc_ok(),
         Rule::identifier => decode_get(term),
         Rule::reflect => Term::Reflect.to_arc_ok(),
-        rule => Err(SyntaxError::Other(format!("Not an atomic term {rule:?}"))), // Rule::string =>
+        Rule::record_type => decode_record_type(term), // Add missing function call
+        Rule::universe => Type::Universe.to_arc_ok(),
+        Rule::empty => Term::Empty.to_arc_ok(),
+        rule => Err(format!("Not an atomic term {rule:?}").into()), // Rule::string =>
     }
 }
 
@@ -255,12 +279,12 @@ fn check_various_simple_stuff() {
 
 #[test]
 fn check_object() {
-    let input = "{
+    let input = "(
        greet = 'Hello',  
        'target' = \"World\";
        'my \"agy\"' = 38,
        xxx = xxx
-    }";
+    )";
 
     let res = parse_term(input).unwrap_print();
     assert_eq!(
@@ -276,4 +300,26 @@ fn check_object() {
 }
 
 #[test]
-fn check_record_type() {}
+fn check_empty_object() {
+    let input = "()";
+    let res = parse_term(input).unwrap_print();
+    assert_eq!(res, Term::Empty.to_arc_term())
+}
+
+#[cfg(test)]
+use crate::Typ;
+#[test]
+fn check_record_type() {
+    let input = "{greet: str, 'target': str, 'my \"agy\"': int, xxx: xxx}";
+    let res = parse_term(input).unwrap_print();
+    assert_eq!(
+        res,
+        Typ([
+            ("greet", Term::get("str")),
+            ("target", Term::get("str")),
+            ("my \"agy\"", Term::get("int")),
+            ("xxx", Term::get("xxx")),
+        ])
+        .to_arc_term()
+    )
+}

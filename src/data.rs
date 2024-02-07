@@ -1,8 +1,8 @@
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
 
 use super::Term;
 
-pub type Str = Cow<'static, str>;
+pub type Str = String;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Value {
