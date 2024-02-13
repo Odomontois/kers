@@ -19,6 +19,7 @@ pest = "2.7"
 pest_derive = "2.7"
 thiserror = "1.0"
 itertools = "0.12"
+typenum = "1.17"
 
 [lib]
 crate-type = ["lib"]

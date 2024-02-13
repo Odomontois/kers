@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::{Primitive, Str};
 
-pub use self::to_term::{ToTerm, Typ};
+pub use self::to_term::{ToTerm, AsTyp};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GenType<T> {

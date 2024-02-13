@@ -90,43 +90,43 @@ impl<X: ToTerm + Clone> ToTerm for &[X] {
     }
 }
 
-pub struct Typ<A>(pub A);
+pub struct AsTyp<A>(pub A);
 
-impl ToTerm for Typ<Term> {
+impl ToTerm for AsTyp<Term> {
     fn to_term(self) -> Term {
         self.0
     }
 }
 
-impl<S: ToString, A> ToTerm for Typ<(S, A)>
+impl<S: ToString, A> ToTerm for AsTyp<(S, A)>
 where
-    Typ<A>: ToTerm,
+    AsTyp<A>: ToTerm,
 {
     fn to_term(self) -> Term {
         Type::Field {
             name: self.0 .0.to_string(),
-            typ: Typ(self.0 .1).to_arc_term(),
+            typ: AsTyp(self.0 .1).to_arc_term(),
         }
         .to_term()
     }
 }
 
-impl<X: Clone> ToTerm for Typ<&[X]>
+impl<X: Clone> ToTerm for AsTyp<&[X]>
 where
-    Typ<X>: ToTerm,
+    AsTyp<X>: ToTerm,
 {
     fn to_term(self) -> Term {
         let and = |left, right: Arc<Term>| Type::And { left, right }.to_term();
-        reduce_term(self.0.iter().cloned().map(Typ), Type::Universe, and)
+        reduce_term(self.0.iter().cloned().map(AsTyp), Type::Universe, and)
     }
 }
 
-impl<const N: usize, X> ToTerm for Typ<[X; N]>
+impl<const N: usize, X> ToTerm for AsTyp<[X; N]>
 where
-    Typ<X>: ToTerm,
+    AsTyp<X>: ToTerm,
 {
     fn to_term(self) -> Term {
         let and = |left, right: Arc<Term>| Type::And { left, right }.to_term();
-        reduce_term(self.0.into_iter().map(Typ), Type::Universe, and)
+        reduce_term(self.0.into_iter().map(AsTyp), Type::Universe, and)
     }
 }
