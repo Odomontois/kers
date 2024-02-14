@@ -8,7 +8,7 @@ then_chain    = { modified_term ~ ("." ~ modified_term)* }
 modified_term = { (modifier ~ WHITESPACE)* ~ atomic_term }
 atomic_term   = { reflect | record | string | natural | identifier | record_type | "(" ~ term ~ ")" | empty }
 empty         = { "()" }
-modifier      = { "~" | "@" }
+modifier      = { "@" }
 reflect       = { "@@" }
 universe      = { "*" }
 

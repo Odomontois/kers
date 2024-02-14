@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use pest::iterators::Pair;
 
-use crate::{Term, ToTerm, Type};
+use crate::{PrimType, Term, ToTerm, Type};
 
 use super::{Rule, SyntaxError};
 
@@ -176,7 +176,6 @@ fn modifed_term(expr: Parsed) -> DecodingTerm {
     subs.try_fold(atomic, |term, sub: Pair<'_, Rule>| {
         sub.check(Rule::modifier)?;
         match sub.as_str() {
-            "~" => Term::Box(term).to_arc_ok(),
             "@" => Term::Unlambda(term).to_arc_ok(),
             s => Err(format!("Unknown modifier {s}").into()),
         }
@@ -193,7 +192,7 @@ fn atomic_term(term: Parsed) -> DecodingTerm {
         Rule::identifier => get(term),
         Rule::reflect => Term::Reflect.to_arc_ok(),
         Rule::record_type => record_type(term), // Add missing function call
-        Rule::universe => Type::Universe.to_arc_ok(),
+        Rule::universe => PrimType::Universe.to_arc_ok(),
         Rule::empty => Term::Empty.to_arc_ok(),
         rule => Err(format!("Not an atomic term {rule:?}").into()), // Rule::string =>
     }

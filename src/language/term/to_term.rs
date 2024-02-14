@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use crate::{Primitive, Term, Type};
+use crate::{PrimType, Term, Type};
+
+use crate::language::term::Primitive;
 
 pub trait ToTerm {
     fn to_term(self) -> Term;
@@ -53,6 +55,12 @@ impl ToTerm for Primitive {
 impl ToTerm for Type {
     fn to_term(self) -> Term {
         Term::Type(self)
+    }
+}
+
+impl ToTerm for PrimType {
+    fn to_term(self) -> Term {
+        Type::Prim(self).to_term()
     }
 }
 
@@ -117,7 +125,7 @@ where
 {
     fn to_term(self) -> Term {
         let and = |left, right: Arc<Term>| Type::And { left, right }.to_term();
-        reduce_term(self.0.iter().cloned().map(AsTyp), Type::Universe, and)
+        reduce_term(self.0.iter().cloned().map(AsTyp), PrimType::Universe, and)
     }
 }
 
@@ -127,6 +135,6 @@ where
 {
     fn to_term(self) -> Term {
         let and = |left, right: Arc<Term>| Type::And { left, right }.to_term();
-        reduce_term(self.0.into_iter().map(AsTyp), Type::Universe, and)
+        reduce_term(self.0.into_iter().map(AsTyp), PrimType::Universe, and)
     }
 }
