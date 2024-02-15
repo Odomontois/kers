@@ -21,6 +21,7 @@ thiserror = "1.0"
 itertools = "0.12"
 typenum = "1.17"
 slotmap = { version = "1.0.7", features = ["serde"] }
+derive_more = "0.99.17"
 
 [lib]
 crate-type = ["lib"]

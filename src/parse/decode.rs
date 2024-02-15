@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use pest::iterators::Pair;
 
-use crate::{PrimType, Term, ToTerm, Type};
+use crate::{Key, PrimType, Term, ToTerm, Type};
 
 use super::{Rule, SyntaxError};
 
@@ -154,7 +154,7 @@ fn record_type(expr: Parsed) -> DecodingTerm {
 
 fn key_value_pair<R: ToTerm>(
     input: Parsed,
-    fterm: impl FnOnce(String, Arc<Term>) -> R,
+    fterm: impl FnOnce(Key, Arc<Term>) -> R,
 ) -> DecodingTerm {
     let mut input = input.into_inner();
     let name = key(input.read(Rule::key)?)?.into();

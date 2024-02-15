@@ -1,15 +1,14 @@
 mod to_term;
 
-use std::sync::Arc;
-
-use crate::Str;
-
 pub use self::to_term::{AsTyp, ToTerm};
+use crate::Str;
+use std::sync::Arc;
+use derive_more::From;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GenType<T> {
     Prim(PrimType),
-    Field { name: Str, typ: Arc<T> },
+    Field { name: Key, typ: Arc<T> },
     Function { dom: Arc<T>, codom: Arc<T> },
     And { left: Arc<T>, right: Arc<T> },
 }
@@ -31,11 +30,11 @@ pub enum Primitive {
 pub type Type = GenType<Term>;
 pub type NormalType = GenType<Type>;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, From)]
 pub enum Key {
     Name(String),
     Index(usize),
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Term {
@@ -43,8 +42,8 @@ pub enum Term {
     Prim(Primitive),
     Empty,
     Append { left: Arc<Term>, right: Arc<Term> },
-    Set { name: Str, value: Arc<Term> },
-    Get(Str),
+    Set { name: Key, value: Arc<Term> },
+    Get(Key),
     Lambda { dom: Arc<Term>, body: Arc<Term> },
     Unlambda(Arc<Term>),
     Then { first: Arc<Term>, next: Arc<Term> },

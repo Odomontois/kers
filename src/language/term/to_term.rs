@@ -111,9 +111,10 @@ where
     AsTyp<A>: ToTerm,
 {
     fn to_term(self) -> Term {
+        let AsTyp((name, typ)) = self;
         Type::Field {
-            name: self.0 .0.to_string(),
-            typ: AsTyp(self.0 .1).to_arc_term(),
+            name: name.to_string().into(),
+            typ: AsTyp(typ).to_arc_term(),
         }
         .to_term()
     }
