@@ -1,9 +1,8 @@
 mod to_term;
 
 pub use self::to_term::{AsTyp, ToTerm};
-use crate::Str;
-use std::sync::Arc;
 use derive_more::From;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GenType<T> {

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::Infallible, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{Key, PrimType};
 

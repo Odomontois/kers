@@ -1,4 +1,4 @@
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::BorrowMut;
 use std::ops::Deref;
 use std::{rc::Rc, sync::Arc};
 
@@ -23,8 +23,6 @@ macro_rules! impl_wrapper {
 }
 
 impl_wrapper! {Box Rc Arc}
-
-
 
 pub(crate) trait GetMut: Deref {
     fn get_mut(&mut self) -> Option<&mut Self::Target>;

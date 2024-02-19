@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use slotmap::new_key_type;
 
 new_key_type! {
-    struct VarKey;
+    pub (crate) struct VarIdx;
 }
 
-pub struct Var<'a>(VarKey, PhantomData<&'a ()>);
+pub struct Var<'a>(VarIdx, PhantomData<&'a ()>);

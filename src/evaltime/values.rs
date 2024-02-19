@@ -1,7 +1,7 @@
 use crate::{PrimType, Primitive};
 
-pub enum Value {
+pub enum EvalValue {
     Prim(Primitive),
-    Record { fields: Vec<Value> },
-    Function { dom: Box<PrimType>, codom: Box<Value> },
+    Record { fields: Vec<EvalValue> },
+    Function { dom: Box<PrimType>, codom: Box<EvalValue> },
 }
