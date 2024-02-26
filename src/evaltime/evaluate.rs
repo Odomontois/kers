@@ -1,16 +1,14 @@
-use slotmap::SlotMap;
 use thiserror::Error;
 
-use crate::plugins::{EvalPlugin, PluginIdx};
 
 #[allow(unused)]
-struct Evaluation {
-    plugins: SlotMap<PluginIdx, EvalPlugin>,
+struct Evaluation<P> {
+    plugins: P,
 }
 
 #[allow(unused)]
 #[derive(Error, Debug)]
 enum EvalError {
     #[error("Value is not a function, {info}")]
-    ValueIsNotAFunction { plugin: PluginIdx, info: String },
+    ValueIsNotAFunction { plugin_name: String, info: String },
 }

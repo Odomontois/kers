@@ -1,24 +1,22 @@
-use slotmap::SlotMap;
+use crate::{plugins::Extension, Term};
 
-use crate::Term;
+use super::{values::Value, variables::VarIdx};
 
-use super::{typing::CtxEvalType, variables::VarIdx};
-
-pub enum TypeError<'a> {
+pub enum TypeError<P: Extension> {
     #[allow(unused)]
-    Mismatch(Term, CtxEvalType<'a>, CtxEvalType<'a>),
+    Mismatch(Term, Value<P>, Value<P>),
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct TypeChecking {
+pub(crate) struct TypeChecking<P> {
     #[allow(unused)]
-    slot_map: SlotMap<VarIdx, ()>,
+    plugins: P,
 }
 
-impl TypeChecking {
+impl<P: Extension> TypeChecking<P> {
     #[allow(unused)]
     pub fn new() -> Self {
-        TypeChecking::default()
+        todo!("new")
     }
 
     #[allow(unused)]
@@ -29,9 +27,9 @@ impl TypeChecking {
     #[allow(unused)]
     fn unify<'a>(
         &mut self,
-        inferred: CtxEvalType<'a>,
-        expected: CtxEvalType<'a>,
-    ) -> Result<CtxEvalType<'a>, TypeError> {
+        inferred: Value<P>,
+        expected: Value<P>,
+    ) -> Result<Value<P>, TypeError<P>> {
         todo!("unify")
     }
 
@@ -39,9 +37,9 @@ impl TypeChecking {
     pub fn check<'a>(
         &'a mut self,
         term: Term,
-        context: CtxEvalType<'a>,
-        expected: CtxEvalType<'a>,
-    ) -> Result<CtxEvalType<'a>, TypeError> {
+        context: Value<P>,
+        expected: Value<P>,
+    ) -> Result<Value<P>, TypeError<P>> {
         match term {
             Term::Empty => Ok(expected),
             Term::Reflect => self.unify(context, expected),

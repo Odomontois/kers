@@ -1,15 +1,32 @@
-use slotmap::new_key_type;
+use crate::evaltime::values::Value;
 
-use crate::evaltime::{typing::ClosedEvalType, values::EvalValue};
-
-new_key_type! {
-    pub struct PluginIdx;
-}
-
-pub trait Plugin {
-    type Type;
+pub trait Runtime {}
+pub trait Extension: Sized {
     type Value;
-    fn then(&mut self, context: EvalValue, term: Self::Value) -> Result<Self::Value, ()>;
+    type Plug: Plugin<Self>;
+    fn plug_in(runtime: &mut dyn Runtime) -> Self::Plug;
 }
 
-pub(crate) type EvalPlugin = Box<dyn Plugin<Type = ClosedEvalType, Value = EvalValue>>;
+pub trait Plugin<P: Extension>: Sized {
+    fn root() -> Value<P>;
+    fn then(&mut self, context: Value<P>, term: P::Value) -> Result<Value<P>, ()>;
+}
+
+pub enum NoValue {}
+
+impl Extension for () {
+    type Plug = ();
+    type Value = NoValue;
+    fn plug_in(_runtime: &mut dyn Runtime) -> () {
+        todo!()
+    }
+}
+
+impl Plugin<()> for () {
+    fn root() -> Value<()> {
+        Value::Record { fields: vec![] }
+    }
+    fn then(&mut self, _context: Value<()>, term: NoValue) -> Result<Value<()>, ()> {
+        match term {}
+    }
+}

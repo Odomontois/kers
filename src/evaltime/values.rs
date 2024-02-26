@@ -1,7 +1,17 @@
-use crate::{PrimType, Primitive};
+use crate::{plugins::Extension, PrimType, Primitive, Term};
 
-pub enum EvalValue {
+pub enum TypeValue {
+    Prim(PrimType),
+}
+pub enum Value<P: Extension> {
     Prim(Primitive),
-    Record { fields: Vec<EvalValue> },
-    Function { dom: Box<PrimType>, codom: Box<EvalValue> },
+    Type(TypeValue),
+    Record {
+        fields: Vec<Value<P>>,
+    },
+    Function {
+        dom: Box<Value<P>>,
+        codom: Box<Value<P>>,
+    },
+    External(P::Value),
 }
