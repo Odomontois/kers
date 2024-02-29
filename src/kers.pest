@@ -1,16 +1,19 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
-term          = { lam_sequence }
-lam_sequence  = { intersection ~ ("->" ~ intersection)* }
-intersection  = { application ~ ("&" ~ application)* }
-application   = { then_chain ~ (then_chain)* }
-then_chain    = { modified_term ~ ("." ~ modified_term)* }
-modified_term = { (modifier ~ WHITESPACE)* ~ atomic_term }
-atomic_term   = { reflect | record | string | natural | identifier | record_type | "(" ~ term ~ ")" | empty }
-empty         = { "()" }
-modifier      = { "@" }
-reflect       = { "@@" }
-universe      = { "*" }
+term          =  { lam_sequence }
+lam_sequence  =  { intersection ~ ("->" ~ intersection)* }
+intersection  =  { application ~ ("&" ~ application)* }
+application   =  { then_chain ~ (then_chain)* }
+then_chain    =  { modified_term ~ ("." ~ modified_term)* }
+modified_term =  { (modifier ~ WHITESPACE)* ~ atomic_term }
+atomic_term   =  { internal | reflect | record | string | natural | identifier | record_type | unit_type | "(" ~ term ~ ")" | empty }
+empty         =  { "()" }
+modifier      =  { "@" }
+reflect       =  { "@@" }
+universe      =  { "*" }
+internal      = ${ "#" ~ (internal_int | internal_text) }
+internal_int  =  { "int" }
+internal_text =  { "text" }
 
 separator = _{ "," | ";" }
 key       =  { identifier | string }
@@ -19,6 +22,7 @@ record     = { "(" ~ assignment ~ (separator ~ assignment)* ~ separator? ~ ")" }
 assignment = { key ~ "=" ~ term }
 
 record_type = { "{" ~ ascription ~ (separator ~ ascription)* ~ separator? ~ "}" }
+unit_type   = { "{" ~ "}" }
 ascription  = { key ~ ":" ~ term }
 
 identifier = @{ LETTER ~ (LETTER | ASCII_DIGIT | "_")* }

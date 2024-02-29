@@ -182,6 +182,15 @@ fn modifed_term(expr: Parsed) -> DecodingTerm {
     })
 }
 
+fn internal(expr: Parsed) -> DecodingTerm {
+    let sub = expr.into_inner().next().ok_or("Empty internal")?;
+    match sub.as_rule() {
+        Rule::internal_int => PrimType::Long.to_arc_ok(),
+        Rule::internal_text => PrimType::Text.to_arc_ok(),
+        other => Err(format!("Expecting internal, got {other:?}").into()),
+    }
+}
+
 fn atomic_term(term: Parsed) -> DecodingTerm {
     let term = term.into_inner().next().ok_or("Empty Term")?;
 
@@ -194,6 +203,8 @@ fn atomic_term(term: Parsed) -> DecodingTerm {
         Rule::record_type => record_type(term), // Add missing function call
         Rule::universe => PrimType::Universe.to_arc_ok(),
         Rule::empty => Term::Empty.to_arc_ok(),
+        Rule::internal => internal(term),
+        Rule::unit_type => PrimType::Any.to_arc_ok(),
         rule => Err(format!("Not an atomic term {rule:?}").into()), // Rule::string =>
     }
 }

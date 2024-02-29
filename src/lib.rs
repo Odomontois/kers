@@ -4,7 +4,7 @@ pub mod language;
 mod parse;
 pub mod evaltime;
 pub mod plugins;
-pub mod hkt;
+pub mod fp;
 
 pub use data::*;
 pub use language::term::*;

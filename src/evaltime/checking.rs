@@ -1,8 +1,8 @@
-use crate::{plugins::Extension, Term};
+use crate::{plugins::Interpteter, Term};
 
 use super::{values::Value, variables::VarIdx};
 
-pub enum TypeError<P: Extension> {
+pub enum TypeError<P: Interpteter> {
     #[allow(unused)]
     Mismatch(Term, Value<P>, Value<P>),
 }
@@ -13,7 +13,7 @@ pub(crate) struct TypeChecking<P> {
     plugins: P,
 }
 
-impl<P: Extension> TypeChecking<P> {
+impl<P: Interpteter> TypeChecking<P> {
     #[allow(unused)]
     pub fn new() -> Self {
         todo!("new")
@@ -41,7 +41,7 @@ impl<P: Extension> TypeChecking<P> {
         expected: Value<P>,
     ) -> Result<Value<P>, TypeError<P>> {
         match term {
-            Term::Empty => Ok(expected),
+            Term::Empty => Value::Record { fields: vec![] }.adapt(expected),
             Term::Reflect => self.unify(context, expected),
 
             _ => todo!("type_check"),

@@ -14,7 +14,6 @@ pub use error::SyntaxError;
 #[grammar = "kers.pest"]
 pub struct Kers;
 
-
 #[allow(unused)]
 fn parse_term(input: &str) -> Result<Arc<Term>, SyntaxError> {
     let mut top = Kers::parse(Rule::term, input)?;
@@ -37,7 +36,7 @@ impl<A, E: Display> UnwrapDisplay for Result<A, E> {
 }
 
 #[cfg(test)]
-use crate::ToTerm;
+use crate::{AsTyp, PrimType, ToTerm};
 
 #[test]
 fn check_various_simple_stuff() {
@@ -78,9 +77,6 @@ fn check_empty_object() {
     assert_eq!(res, Term::Empty.to_arc_term())
 }
 
-#[cfg(test)]
-use crate::AsTyp;
-
 use self::decode::PairsExt;
 #[test]
 fn check_record_type() {
@@ -96,4 +92,19 @@ fn check_record_type() {
         ])
         .to_arc_term()
     )
+}
+
+#[test]
+fn check_unit_type() {
+    let res = parse_term("{}").unwrap_print();
+    assert_eq!(res, PrimType::Any.to_arc_term());
+}
+
+#[test]
+fn check_builtin_types() {
+    let text_res = parse_term("#text").unwrap_print();
+    assert_eq!(text_res, PrimType::Text.to_arc_term());
+
+    let int_res = parse_term("#int").unwrap_print();
+    assert_eq!(int_res, PrimType::Long.to_arc_term());
 }
