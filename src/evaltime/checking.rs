@@ -1,6 +1,6 @@
-use crate::{plugins::Interpteter, Term};
+use crate::Term;
 
-use super::{values::Value, variables::VarIdx};
+use super::{interpreter::Interpteter, values::Value, variables::VarIdx};
 
 pub enum TypeError<P: Interpteter> {
     #[allow(unused)]
@@ -36,13 +36,20 @@ impl<P: Interpteter> TypeChecking<P> {
     #[allow(unused)]
     pub fn check<'a>(
         &'a mut self,
-        term: Term,
-        context: Value<P>,
-        expected: Value<P>,
+        term: &Term,
+        context: &Value<P>,
     ) -> Result<Value<P>, TypeError<P>> {
         match term {
-            Term::Empty => Value::Record { fields: vec![] }.adapt(expected),
-            Term::Reflect => self.unify(context, expected),
+            Term::Empty => Ok(Value::Record { fields: vec![] }),
+            Term::Reflect => {
+                let cloned: Value<P> = context.clone();
+                Ok(context.clone())
+            }
+            Term::Append { left, right } => {
+                let left = self.check(left, context)?;
+                let right = self.check(right, context)?;
+                todo!()
+            }
 
             _ => todo!("type_check"),
         }

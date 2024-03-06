@@ -1,7 +1,9 @@
-use crate::{plugins::Interpteter, PrimType, Primitive};
+use crate::evaltime::interpreter::Interpteter;
+use crate::{PrimType, Primitive};
 
-use super::{checking::TypeError, variables::VarIdx};
+use super::variables::VarIdx;
 
+#[derive(Clone)]
 pub enum TypeValue<P> {
     Prim(PrimType),
     Function {
@@ -12,6 +14,8 @@ pub enum TypeValue<P> {
         fields: Vec<Value<P>>,
     },
 }
+
+#[derive(Clone)]
 pub enum Value<P> {
     Prim(Primitive),
     Type(TypeValue<P>),
@@ -27,8 +31,4 @@ pub enum Value<P> {
 }
 
 #[allow(unused)]
-impl<P: Interpteter> Value<P> {
-    pub fn adapt(self, expected: Value<P>) -> Result<Value<P>, TypeError<P>> {
-        todo!()
-    }
-}
+impl<P: Interpteter> Value<P> {}
