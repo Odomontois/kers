@@ -2,7 +2,7 @@ use crate::Term;
 
 use super::{interpreter::Interpteter, values::Value, variables::VarIdx};
 
-pub enum TypeError<P: Interpteter> {
+pub enum TypeError<P: Interpteter<P>> {
     #[allow(unused)]
     Mismatch(Term, Value<P>, Value<P>),
 }
@@ -13,7 +13,7 @@ pub(crate) struct TypeChecking<P> {
     plugins: P,
 }
 
-impl<P: Interpteter> TypeChecking<P> {
+impl<P: Interpteter<P>> TypeChecking<P> {
     #[allow(unused)]
     pub fn new() -> Self {
         todo!("new")

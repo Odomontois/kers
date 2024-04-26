@@ -16,19 +16,19 @@ pub enum TypeValue<P> {
 }
 
 #[derive(Clone)]
-pub enum Value<P> {
+pub enum Value<V> {
     Prim(Primitive),
-    Type(TypeValue<P>),
+    Type(TypeValue<V>),
     Variable(VarIdx),
     Record {
-        fields: Vec<Value<P>>,
+        fields: Vec<Value<V>>,
     },
     Lambda {
-        dom: Box<Value<P>>,
-        term: Box<Value<P>>,
+        dom: Box<Value<V>>,
+        term: Box<Value<V>>,
     },
-    External(P),
+    External(V),
 }
 
 #[allow(unused)]
-impl<P: Interpteter> Value<P> {}
+impl<P: Interpteter<P>> Value<P> {}

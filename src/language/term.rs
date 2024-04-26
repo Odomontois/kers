@@ -33,7 +33,14 @@ pub type NormalType = GenType<Type>;
 pub enum Key {
     Name(String),
     Index(usize),
+    Shadow { level: usize, prev: Box<Key> },
 }
+
+#[test]
+fn key_size() {
+    assert_eq!(std::mem::size_of::<Key>(), std::mem::size_of::<String>());
+}
+
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Term {

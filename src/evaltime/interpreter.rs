@@ -1,43 +1,40 @@
-use std::marker::PhantomData;
-
 use either::Either::{self, Left, Right};
 
 use crate::fp::{Compose, Prism, ToLeft, ToRight};
 
 use super::{ruintime::Runtime, values::Value};
 
-pub trait Interpteter: Clone{
-    type Val;
-    type Plug<'a, V: 'a, P>: Plugin<Val = V, Own = Self::Val> + 'a;
-    fn plug_in<'a, V, P: Prism<Super = V, Sub = Self::Val>>(
-        self,
+pub trait Interpteter<V>: Clone {
+    type Root;
+    type Plug<P>: Plugin<V>;
+    fn plug_in<P: Prism<Super = V, Sub = Self>>(
+        root: Self::Root,
         runtime: &mut Runtime,
         prism: P,
-    ) -> Self::Plug<'a, V, P>;
+    ) -> Self::Plug<P>;
 }
 
-pub trait Plugin: Sized {
-    type Val;
+pub trait Plugin<V>: Sized {
     type Own;
-    fn roots(&mut self) -> Vec<Value<Self::Val>>;
-    fn then(&mut self, context: Value<Self::Val>, term: Self::Own) -> Result<Value<Self::Val>, ()>;
+    fn roots(&mut self) -> Vec<Value<V>>;
+    fn then(&mut self, context: Value<V>, term: Self::Own) -> Result<Value<V>, ()>;
 }
 
+#[derive(Clone)]
 pub enum NoValue {}
 
-impl Interpteter for () {
-    type Plug<'a, V: 'a, P> = EmptyPlugin<V>;
-    type Val = NoValue;
-    fn plug_in<'a, V: 'a, P>(self, _: &mut Runtime, _prism: P) -> EmptyPlugin<V> {
-        EmptyPlugin(PhantomData)
+impl<V> Interpteter<V> for NoValue {
+    type Root = ();
+    type Plug<P> = EmptyPlugin;
+    fn plug_in<P>(_: Self::Root, _: &mut Runtime, _prism: P) -> EmptyPlugin {
+        EmptyPlugin
     }
 }
 
-pub struct EmptyPlugin<V>(PhantomData<V>);
+pub struct EmptyPlugin;
 
-impl<V> Plugin for EmptyPlugin<V> {
+impl<V> Plugin<V> for EmptyPlugin {
     type Own = NoValue;
-    type Val = V;
     fn roots(&mut self) -> Vec<Value<V>> {
         vec![]
     }
@@ -46,30 +43,27 @@ impl<V> Plugin for EmptyPlugin<V> {
     }
 }
 
-impl<A: Interpteter, B: Interpteter> Interpteter for (A, B) {
-    type Val = Either<A::Val, B::Val>;
+impl<V, A: Interpteter<V>, B: Interpteter<V>> Interpteter<V> for Either<A, B> {
+    type Root = (A::Root, B::Root);
 
-    type Plug<'a, V: 'a, P> = PairPlugin<
-        A::Plug<'a, V, Compose<P, ToLeft<A::Val, B::Val>>>,
-        B::Plug<'a, V, Compose<P, ToRight<A::Val, B::Val>>>,
-    >;
+    type Plug<P> =
+        PairPlugin<A::Plug<Compose<P, ToLeft<A, B>>>, B::Plug<Compose<P, ToRight<A, B>>>>;
 
-    fn plug_in<'a, V, P: Prism<Super = V, Sub = Self::Val>>(
-        self,
+    fn plug_in<P: Prism<Super = V, Sub = Self>>(
+        root: Self::Root,
         rt: &mut Runtime,
         prism: P,
-    ) -> Self::Plug<'a, V, P> {
-        let (a, b) = self;
-        let pa = a.plug_in(rt, prism.to_left());
-        let b = b.plug_in(rt, prism.to_right());
-        PairPlugin(pa, b)
+    ) -> Self::Plug<P> {
+        let (a, b) = root;
+        let pa = A::plug_in(a, rt, prism.to_left());
+        let pb = B::plug_in(b, rt, prism.to_right());
+        PairPlugin(pa, pb)
     }
 }
 
 pub struct PairPlugin<P1, P2>(P1, P2);
 
-impl<PL: Plugin<Val = V>, PR: Plugin<Val = V>, V> Plugin for PairPlugin<PL, PR> {
-    type Val = V;
+impl<V, PL: Plugin<V>, PR: Plugin<V>> Plugin<V> for PairPlugin<PL, PR> {
     type Own = Either<PL::Own, PR::Own>;
 
     fn roots(&mut self) -> Vec<Value<V>> {
@@ -77,7 +71,7 @@ impl<PL: Plugin<Val = V>, PR: Plugin<Val = V>, V> Plugin for PairPlugin<PL, PR> 
         a.roots().into_iter().chain(b.roots()).collect()
     }
 
-    fn then(&mut self, context: Value<Self::Val>, term: Self::Own) -> Result<Value<Self::Val>, ()> {
+    fn then(&mut self, context: Value<V>, term: Self::Own) -> Result<Value<V>, ()> {
         let PairPlugin(l, r) = self;
         match term {
             Left(lt) => l.then(context, lt),
@@ -85,4 +79,3 @@ impl<PL: Plugin<Val = V>, PR: Plugin<Val = V>, V> Plugin for PairPlugin<PL, PR> 
         }
     }
 }
-
