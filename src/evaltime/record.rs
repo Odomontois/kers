@@ -37,6 +37,7 @@ pub enum RenamingError {
     MissingKey(Key),
 }
 
+#[allow(unused)]
 fn rename<V>(
     source: &mut RecordType<V>,
     target: &RecordType<V>,
@@ -53,4 +54,9 @@ fn rename<V>(
         })
         .collect::<Result<Vec<_>, _>>()
         .map(|v| v.into())
+}
+
+#[test]
+fn test(){
+    
 }

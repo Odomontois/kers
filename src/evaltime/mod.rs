@@ -5,3 +5,4 @@ mod record;
 mod ruintime;
 pub mod values;
 mod variables;
+mod adapt;

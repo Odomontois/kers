@@ -1,6 +1,11 @@
+use std::borrow::Cow;
+
 use crate::Term;
 
-use super::{interpreter::Interpteter, values::Value, variables::VarIdx};
+use super::{
+    interpreter::Interpteter,
+    values::{TypeValue, Value},
+};
 
 pub enum TypeError<P: Interpteter<P>> {
     #[allow(unused)]
@@ -20,38 +25,21 @@ impl<P: Interpteter<P>> TypeChecking<P> {
     }
 
     #[allow(unused)]
-    pub fn new_var(&mut self) -> VarIdx {
-        todo!("new_var")
-    }
-
-    #[allow(unused)]
-    fn unify<'a>(
-        &mut self,
-        inferred: Value<P>,
-        expected: Value<P>,
-    ) -> Result<Value<P>, TypeError<P>> {
-        todo!("unify")
-    }
-
-    #[allow(unused)]
     pub fn check<'a>(
         &'a mut self,
         term: &Term,
-        context: &Value<P>,
-    ) -> Result<Value<P>, TypeError<P>> {
-        match term {
-            Term::Empty => Ok(Value::Record { fields: vec![] }),
-            Term::Reflect => {
-                let cloned: Value<P> = context.clone();
-                Ok(context.clone())
-            }
+        context: &TypeValue<P>,
+    ) -> Result<TypeValue<P>, TypeError<P>> {
+        Ok(match term {
+            Term::Empty => TypeValue::Record(vec![]),
+            Term::Reflect => context.clone(),
             Term::Append { left, right } => {
                 let left = self.check(left, context)?;
-                let right = self.check(right, context)?;
-                todo!()
+                let right = self.check(right, &context.extend(left.clone()))?;
+                left.extend(right)
             }
 
-            _ => todo!("type_check"),
-        }
+            t => todo!("typecheck"),
+        })
     }
 }

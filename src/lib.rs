@@ -8,4 +8,5 @@ pub mod fp;
 
 pub use data::*;
 pub use language::term::*;
+mod tests;
 

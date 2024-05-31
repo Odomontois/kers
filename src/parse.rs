@@ -15,7 +15,7 @@ pub use error::SyntaxError;
 pub struct Kers;
 
 #[allow(unused)]
-fn parse_term(input: &str) -> Result<Arc<Term>, SyntaxError> {
+pub(crate) fn parse_term(input: &str) -> Result<Arc<Term>, SyntaxError> {
     let mut top = Kers::parse(Rule::term, input)?;
     decode::term(top.read(Rule::term)?)
 }
