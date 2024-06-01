@@ -2,6 +2,7 @@ use std::borrow::BorrowMut;
 use std::ops::Deref;
 use std::{rc::Rc, sync::Arc};
 
+#[allow(unused)]
 pub(crate) trait Wrapper<'a>: Sized + 'a {
     type In: 'a;
     type Wrap<A: 'a>: 'a + Deref<Target = A> + Sized + 'a;
@@ -24,6 +25,7 @@ macro_rules! impl_wrapper {
 
 impl_wrapper! {Box Rc Arc}
 
+#[allow(unused)]
 pub(crate) trait GetMut: Deref {
     fn get_mut(&mut self) -> Option<&mut Self::Target>;
 }

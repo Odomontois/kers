@@ -20,6 +20,7 @@ pub(crate) fn parse_term(input: &str) -> Result<Arc<Term>, SyntaxError> {
     decode::term(top.read(Rule::term)?)
 }
 
+#[allow(unused)]
 trait UnwrapDisplay {
     type Output;
     fn unwrap_print(self) -> Self::Output;

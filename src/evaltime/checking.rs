@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::Term;
 
 use super::{

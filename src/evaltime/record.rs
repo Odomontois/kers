@@ -6,7 +6,7 @@ use super::values::Value;
 use derive_more::From;
 
 #[derive(Clone, From)]
-struct Renaming(Vec<usize>);
+struct Renaming(#[allow(unused)] Vec<usize>);
 
 #[allow(unused)]
 pub(crate) struct Record<V> {

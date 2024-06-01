@@ -1,3 +1,4 @@
+#[cfg(test)]
 use crate::parse::parse_term;
 
 #[test]
@@ -8,6 +9,7 @@ fn test1() {
             x: y
          }
         "##,
-    ).unwrap();
+    )
+    .unwrap();
     println!("{t:?}");
 }
