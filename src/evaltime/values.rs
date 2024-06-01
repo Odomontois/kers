@@ -1,6 +1,8 @@
+use std::fmt::Debug;
+use std::sync::Arc;
 
 use crate::evaltime::interpreter::Interpteter;
-use crate::{PrimType, Primitive};
+use crate::{test_size, PrimType, Primitive};
 
 use super::variables::VarIdx;
 
@@ -8,10 +10,10 @@ use super::variables::VarIdx;
 pub enum TypeValue<P> {
     Prim(PrimType),
     Function {
-        dom: Box<TypeValue<P>>,
-        codom: Box<TypeValue<P>>,
+        dom: Arc<TypeValue<P>>,
+        codom: Arc<TypeValue<P>>,
     },
-    Record(Vec<Value<P>>),
+    Record(Vec<Arc<Value<P>>>),
 }
 use TypeValue::*;
 
@@ -41,7 +43,15 @@ pub enum Value<V> {
     },
     External(V),
 }
+#[allow(unused)]
+pub(crate) struct TypedValue<V> {
+    value: Value<V>,
+    ty: Option<Arc<TypeValue<V>>>,
+}
 
+test_size!(test_value Value<()> TypedValue<()>);
 
 #[allow(unused)]
 impl<P: Interpteter<P>> Value<P> {}
+
+

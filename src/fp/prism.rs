@@ -31,6 +31,7 @@ pub trait Prism: Sized + Copy {
     }
 }
 
+
 pub struct ToLeft<A, B>(PhantomData<A>, PhantomData<B>);
 impl<A, B> Clone for ToLeft<A, B> {
     fn clone(&self) -> Self {
