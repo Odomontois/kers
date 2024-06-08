@@ -1,35 +1,25 @@
 use crate::Term;
 
-use super::{
-    interpreter::Interpteter,
-    values::{TypeValue, Value},
-};
+use super::values::Value;
 
-pub enum TypeError<P: Interpteter<P>> {
+pub enum TypeError {
     #[allow(unused)]
-    Mismatch(Term, Value<P>, Value<P>),
+    Mismatch(Term, Value, Value),
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct TypeChecking<P> {
-    #[allow(unused)]
-    plugins: P,
-}
+pub(crate) struct TypeChecking {}
 
-impl<P: Interpteter<P>> TypeChecking<P> {
+impl TypeChecking {
     #[allow(unused)]
     pub fn new() -> Self {
         todo!("new")
     }
 
     #[allow(unused)]
-    pub fn check<'a>(
-        &'a mut self,
-        term: &Term,
-        context: &TypeValue<P>,
-    ) -> Result<TypeValue<P>, TypeError<P>> {
+    pub fn check<'a>(&'a mut self, term: &Term, context: &Value) -> Result<Value, TypeError> {
         Ok(match term {
-            Term::Empty => TypeValue::Record(vec![]),
+            Term::Empty => Value::Record(vec![]),
             Term::Reflect => context.clone(),
             Term::Append { left, right } => {
                 let left = self.check(left, context)?;

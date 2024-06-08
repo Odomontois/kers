@@ -20,10 +20,26 @@ pub enum PrimType {
     Any,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
+pub enum BuiltInOperation {
+    Plus,
+    Minus,
+    Times,
+    Div,
+    Mod,
+    Pow,
+    Neg,
+    Len,
+    CharAt,
+    Concat,
+    Eq,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Primitive {
     Long(u64),
     Text(String),
+    BuiltIn(BuiltInOperation),
 }
 
 pub type Type = GenType<Term>;
@@ -40,7 +56,6 @@ pub enum Key {
 fn key_size() {
     assert_eq!(std::mem::size_of::<Key>(), std::mem::size_of::<String>());
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Term {

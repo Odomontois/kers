@@ -9,19 +9,19 @@ use derive_more::From;
 struct Renaming(#[allow(unused)] Vec<usize>);
 
 #[allow(unused)]
-pub(crate) struct Record<V> {
-    fields: Vec<Value<V>>,
+pub(crate) struct Record {
+    fields: Vec<Value>,
     renaming: Option<Renaming>,
 }
 
 type Places = HashMap<Key, usize>;
 
-pub(crate) struct RecordType<V> {
-    fields: Vec<(Key, Value<V>)>,
+pub(crate) struct RecordType {
+    fields: Vec<(Key, Value)>,
     fields_places: Option<Places>,
 }
 
-impl<V> RecordType<V> {
+impl RecordType {
     pub fn field_places(&mut self) -> &Places {
         self.fields_places.get_or_insert_with(|| {
             self.fields
@@ -39,8 +39,8 @@ pub enum RenamingError {
 
 #[allow(unused)]
 fn rename<V>(
-    source: &mut RecordType<V>,
-    target: &RecordType<V>,
+    source: &mut RecordType,
+    target: &RecordType,
 ) -> Result<Renaming, RenamingError> {
     let source = source.field_places();
     target

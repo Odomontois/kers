@@ -16,8 +16,8 @@ pub trait Interpteter<V>: Clone {
 
 pub trait Plugin<V>: Sized {
     type Own;
-    fn roots(&mut self) -> Vec<Value<V>>;
-    fn then(&mut self, context: Value<V>, term: Self::Own) -> Result<Value<V>, ()>;
+    fn roots(&mut self) -> Vec<Value>;
+    fn then(&mut self, context: Value, term: Self::Own) -> Result<Value, ()>;
 }
 
 #[derive(Clone)]
@@ -35,10 +35,10 @@ pub struct EmptyPlugin;
 
 impl<V> Plugin<V> for EmptyPlugin {
     type Own = NoValue;
-    fn roots(&mut self) -> Vec<Value<V>> {
+    fn roots(&mut self) -> Vec<Value> {
         vec![]
     }
-    fn then(&mut self, _context: Value<V>, term: NoValue) -> Result<Value<V>, ()> {
+    fn then(&mut self, _context: Value, term: NoValue) -> Result<Value, ()> {
         match term {}
     }
 }
@@ -66,12 +66,12 @@ pub struct PairPlugin<P1, P2>(P1, P2);
 impl<V, PL: Plugin<V>, PR: Plugin<V>> Plugin<V> for PairPlugin<PL, PR> {
     type Own = Either<PL::Own, PR::Own>;
 
-    fn roots(&mut self) -> Vec<Value<V>> {
+    fn roots(&mut self) -> Vec<Value> {
         let PairPlugin(a, b) = self;
         a.roots().into_iter().chain(b.roots()).collect()
     }
 
-    fn then(&mut self, context: Value<V>, term: Self::Own) -> Result<Value<V>, ()> {
+    fn then(&mut self, context: Value, term: Self::Own) -> Result<Value, ()> {
         let PairPlugin(l, r) = self;
         match term {
             Left(lt) => l.then(context, lt),

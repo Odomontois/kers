@@ -2,23 +2,23 @@ use std::fmt::Debug;
 use std::sync::Arc;
 
 use crate::evaltime::interpreter::Interpteter;
-use crate::{test_size, PrimType, Primitive};
-
-use super::variables::VarIdx;
+use crate::{test_size, PrimType, Primitive, Term};
 
 #[derive(Clone, Debug)]
-pub enum TypeValue<P> {
+pub enum TypeValue {
     Prim(PrimType),
     Function {
-        dom: Arc<TypeValue<P>>,
-        codom: Arc<TypeValue<P>>,
+        dom: Arc<TypeValue>,
+        codom: Arc<TypeValue>,
     },
-    Record(Vec<Arc<Value<P>>>),
+    Record(Vec<Arc<Value>>),
 }
-use TypeValue::*;
 
-impl<P: Clone> TypeValue<P> {
-    pub(crate) fn extend(&self, with: TypeValue<P>) -> TypeValue<P> {
+use super::external::ExternalValue;
+
+impl TypeValue {
+    pub(crate) fn extend(&self, with: TypeValue) -> TypeValue {
+        use TypeValue::*;
         match (self, with) {
             (Record(left), Record(mut right)) => {
                 right.extend(left.clone());
@@ -30,28 +30,30 @@ impl<P: Clone> TypeValue<P> {
 }
 
 #[derive(Clone, Debug)]
-pub enum Value<V> {
+pub enum Value {
     Prim(Primitive),
-    Type(TypeValue<V>),
-    Variable(VarIdx),
-    Record {
-        fields: Vec<Value<V>>,
-    },
-    Lambda {
-        dom: Box<Value<V>>,
-        term: Box<Value<V>>,
-    },
-    External(V),
+    Type(TypeValue),
+    Variable(usize),
+    Record(Vec<Value>),
+    Lambda { dom: Box<Value>, term: Box<Term> },
 }
-#[allow(unused)]
-pub(crate) struct TypedValue<V> {
-    value: Value<V>,
-    ty: Option<Arc<TypeValue<V>>>,
+pub struct TypedValue {
+    value: Value,
+    ty: Option<Arc<TypeValue>>,
 }
 
-test_size!(test_value Value<()> TypedValue<()>);
+test_size!(test_value Value TypedValue);
 
-#[allow(unused)]
-impl<P: Interpteter<P>> Value<P> {}
+impl Value {
+    pub(crate) fn extend(&self, with: Value) -> Value {
+        use Value::*;
 
-
+        match (self, with) {
+            (Record(left), Record(mut right)) => {
+                right.extend(left.clone());
+                Record(right)
+            }
+            (_, with) => with,
+        }
+    }
+}
