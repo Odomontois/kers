@@ -3,11 +3,6 @@ use thiserror::Error;
 pub struct Runtime {}
 
 #[allow(unused)]
-struct Evaluation<P> {
-    plugins: P,
-}
-
-#[allow(unused)]
 #[derive(Error, Debug)]
 enum EvalError {
     #[error("Value is not a function, {info}")]

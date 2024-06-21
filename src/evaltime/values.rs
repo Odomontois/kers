@@ -5,16 +5,14 @@ use crate::evaltime::interpreter::Interpteter;
 use crate::{test_size, PrimType, Primitive, Term};
 
 #[derive(Clone, Debug)]
-pub enum TypeValue {
+pub(crate) enum TypeValue {
     Prim(PrimType),
-    Function {
-        dom: Arc<TypeValue>,
-        codom: Arc<TypeValue>,
-    },
-    Record(Vec<Arc<Value>>),
+    Function { dom: Arc<Value>, codom: Arc<Value> },
+    Record(RecordType),
 }
 
 use super::external::ExternalValue;
+use super::record::RecordType;
 
 impl TypeValue {
     pub(crate) fn extend(&self, with: TypeValue) -> TypeValue {
@@ -30,7 +28,7 @@ impl TypeValue {
 }
 
 #[derive(Clone, Debug)]
-pub enum Value {
+pub(crate) enum Value {
     Prim(Primitive),
     Type(TypeValue),
     Variable(usize),
@@ -39,7 +37,6 @@ pub enum Value {
 }
 pub struct TypedValue {
     value: Value,
-    ty: Option<Arc<TypeValue>>,
 }
 
 test_size!(test_value Value TypedValue);
