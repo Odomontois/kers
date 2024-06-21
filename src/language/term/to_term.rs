@@ -33,6 +33,14 @@ pub trait ToArcTerm: Sized {
         }
         .to_term()
     }
+
+    fn function(self, codom: impl ToArcTerm) -> Term {
+        Type::Function {
+            dom: self.to_arc_term(),
+            codom: codom.to_arc_term(),
+        }
+        .to_term()
+    }
 }
 
 impl ToArcTerm for Arc<Term> {

@@ -1,6 +1,6 @@
+use crate::language::term::get;
 use crate::parse::parse_term;
-use crate::{Term, ToArcTerm, Type};
-
+use crate::ToArcTerm;
 #[test]
 fn test1() {
     let t = parse_term(
@@ -8,14 +8,7 @@ fn test1() {
          { x: y }
         "##,
     );
-    assert_eq!(
-        t,
-        Type::Field {
-            name: "x".into(),
-            typ: Term::get("y").to_arc_term()
-        }
-        .to_arc_ok()
-    );
+    assert_eq!(t, get("y").field("x").to_arc_ok());
 }
 
 #[test]
@@ -27,15 +20,11 @@ fn test2() {
     );
     assert_eq!(
         t,
-        Type::Function {
-            dom: Type::Field {
-                name: "x".into(),
-                typ: Term::get("int").to_arc_term()
-            }
-            .to_arc_term(),
-            codom: Term::get("int").to_arc_term()
-        }
-        .to_arc_ok()
+        get("int")
+            .field("x")
+            .and(get("int").field("y"))
+            .function(get("int"))
+            .to_arc_ok()
     );
 
     println!("{t:?}");

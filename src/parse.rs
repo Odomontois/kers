@@ -4,6 +4,8 @@ use std::{fmt::Display, sync::Arc};
 use pest::Parser;
 use pest_derive::Parser;
 
+#[cfg(test)]
+use crate::language::term;
 use crate::Term;
 #[cfg(test)]
 use crate::ToArcTerm;
@@ -67,7 +69,7 @@ fn check_object() {
             ("greet", "Hello".to_term()),
             ("target", "World".to_term()),
             ("my \"agy\"", 38u64.to_term()),
-            ("xxx", Term::get("xxx"))
+            ("xxx", term::get("xxx"))
         ]
         .to_arc_term()
     )
@@ -88,10 +90,10 @@ fn check_record_type() {
     assert_eq!(
         res,
         AsTyp([
-            ("greet", Term::get("str")),
-            ("target", Term::get("str")),
-            ("my \"agy\"", Term::get("int")),
-            ("xxx", Term::get("xxx")),
+            ("greet", term::get("str")),
+            ("target", term::get("str")),
+            ("my \"agy\"", term::get("int")),
+            ("xxx", term::get("xxx")),
         ])
         .to_arc_term()
     )

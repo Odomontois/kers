@@ -1,6 +1,6 @@
 mod to_term;
 
-pub use self::to_term::{AsTyp, ToTerm, ToArcTerm};
+pub use self::to_term::{AsTyp, ToArcTerm, ToTerm};
 use derive_more::From;
 use std::sync::Arc;
 
@@ -83,10 +83,8 @@ impl Default for Term {
     }
 }
 
-impl Term {
-    pub fn get(name: &str) -> Term {
-        Term::Get(name.to_string().into())
-    }
+pub fn get(name: &str) -> Term {
+    Term::Get(name.to_string().into())
 }
 
 #[test]
