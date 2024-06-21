@@ -6,12 +6,18 @@ use super::values::Value;
 use derive_more::From;
 
 #[derive(Clone, From)]
-struct Renaming(#[allow(unused)] Vec<usize>);
+pub(crate) enum Renaming {
+    Identity,
+    Permutation(Vec<usize>),
+}
 
-#[allow(unused)]
+pub enum RecordData {
+    Plain(Vec<Value>),
+}
+
 pub(crate) struct Record {
-    fields: Vec<Value>,
-    renaming: Option<Renaming>,
+    data: RecordData,
+    renaming: Renaming,
 }
 
 type Places = HashMap<Key, usize>;
@@ -38,10 +44,7 @@ pub enum RenamingError {
 }
 
 #[allow(unused)]
-fn rename<V>(
-    source: &mut RecordType,
-    target: &RecordType,
-) -> Result<Renaming, RenamingError> {
+fn rename<V>(source: &mut RecordType, target: &RecordType) -> Result<Renaming, RenamingError> {
     let source = source.field_places();
     target
         .fields
@@ -57,6 +60,4 @@ fn rename<V>(
 }
 
 #[test]
-fn test(){
-    
-}
+fn test() {}

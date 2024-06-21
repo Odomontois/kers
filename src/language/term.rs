@@ -89,3 +89,9 @@ impl Term {
         }
     }
 }
+
+
+#[test]
+fn lol(){
+    println!("{}", "aaa".to_string())
+}
