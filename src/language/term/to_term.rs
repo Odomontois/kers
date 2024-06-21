@@ -41,6 +41,13 @@ pub trait ToArcTerm: Sized {
         }
         .to_term()
     }
+
+    fn lambda(self, body: impl ToArcTerm) -> Term {
+        Term::Lambda {
+            dom: self.to_arc_term(),
+            body: body.to_arc_term(),
+        }
+    }
 }
 
 impl ToArcTerm for Arc<Term> {
