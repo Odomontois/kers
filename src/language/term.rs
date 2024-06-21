@@ -1,6 +1,6 @@
 mod to_term;
 
-pub use self::to_term::{AsTyp, ToTerm};
+pub use self::to_term::{AsTyp, ToTerm, ToArcTerm};
 use derive_more::From;
 use std::sync::Arc;
 
@@ -52,6 +52,12 @@ pub enum Key {
     Shadow { level: usize, prev: Box<Key> },
 }
 
+impl From<&'_ str> for Key {
+    fn from(value: &'_ str) -> Self {
+        value.to_string().into()
+    }
+}
+
 #[test]
 fn key_size() {
     assert_eq!(std::mem::size_of::<Key>(), std::mem::size_of::<String>());
@@ -81,17 +87,9 @@ impl Term {
     pub fn get(name: &str) -> Term {
         Term::Get(name.to_string().into())
     }
-
-    pub fn apply(func: Arc<Term>, args: Arc<Term>) -> Term {
-        Term::Then {
-            first: args,
-            next: Term::Unlambda(func).to_arc_term(),
-        }
-    }
 }
 
-
 #[test]
-fn lol(){
+fn lol() {
     println!("{}", "aaa".to_string())
 }

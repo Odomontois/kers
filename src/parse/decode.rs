@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use pest::iterators::Pair;
 
-use crate::{Key, PrimType, Term, ToTerm, Type};
+use crate::{Key, PrimType, Term, ToArcTerm, ToTerm, Type};
 
 use super::{Rule, SyntaxError};
 
@@ -127,7 +127,7 @@ fn application(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::then_chain,
         then_chain,
-        |func, args| Term::apply(func, args).to_arc_term(),
+        |func, args| func.apply(args).to_arc_term(),
         Assocciation::Left,
     )
 }
@@ -187,6 +187,7 @@ fn internal(expr: Parsed) -> DecodingTerm {
     match sub.as_rule() {
         Rule::internal_int => PrimType::Long.to_arc_ok(),
         Rule::internal_text => PrimType::Text.to_arc_ok(),
+        Rule::internal_type => PrimType::Universe.to_arc_ok(),
         other => Err(format!("Expecting internal, got {other:?}").into()),
     }
 }
@@ -201,7 +202,6 @@ fn atomic_term(term: Parsed) -> DecodingTerm {
         Rule::identifier => get(term),
         Rule::reflect => Term::Reflect.to_arc_ok(),
         Rule::record_type => record_type(term), // Add missing function call
-        Rule::universe => PrimType::Universe.to_arc_ok(),
         Rule::empty => Term::Empty.to_arc_ok(),
         Rule::internal => internal(term),
         Rule::unit_type => PrimType::Any.to_arc_ok(),

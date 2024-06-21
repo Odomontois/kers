@@ -5,6 +5,8 @@ use pest::Parser;
 use pest_derive::Parser;
 
 use crate::Term;
+#[cfg(test)]
+use crate::ToArcTerm;
 
 mod decode;
 mod error;

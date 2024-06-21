@@ -1,3 +1,4 @@
+#[cfg(test)]
 mod types;
 
 #[macro_export]

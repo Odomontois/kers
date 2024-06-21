@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use super::Rule;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum SyntaxError {
     #[error("parse error {0}")]
     ParseError(#[from] PestError<Rule>),

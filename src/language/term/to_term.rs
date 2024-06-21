@@ -1,25 +1,54 @@
 use std::sync::Arc;
 
-use crate::{PrimType, Term, Type};
+use crate::{Key, PrimType, Term, Type};
 
 use crate::language::term::Primitive;
 
-pub trait ToTerm {
-    fn to_term(self) -> Term;
+pub trait ToArcTerm: Sized {
+    fn to_arc_term(self) -> Arc<Term>;
 
-    fn to_arc_term(self) -> Arc<Term>
-    where
-        Self: Sized,
-    {
-        Arc::new(self.to_term())
-    }
-
-    fn to_arc_ok<E>(self) -> Result<Arc<Term>, E>
-    where
-        Self: Sized,
-    {
+    fn to_arc_ok<E>(self) -> Result<Arc<Term>, E> {
         Ok(self.to_arc_term())
     }
+
+    fn apply(self, args: impl ToArcTerm) -> Term {
+        Term::Then {
+            first: args.to_arc_term(),
+            next: Term::Unlambda(self.to_arc_term()).to_arc_term(),
+        }
+    }
+
+    fn and(self, other: impl ToArcTerm) -> Term {
+        Type::And {
+            left: self.to_arc_term(),
+            right: other.to_arc_term(),
+        }
+        .to_term()
+    }
+
+    fn field(self, name: impl Into<Key>) -> Term {
+        Type::Field {
+            name: name.into(),
+            typ: self.to_arc_term(),
+        }
+        .to_term()
+    }
+}
+
+impl ToArcTerm for Arc<Term> {
+    fn to_arc_term(self) -> Arc<Term> {
+        self
+    }
+}
+
+impl<T: ToTerm> ToArcTerm for T {
+    fn to_arc_term(self) -> Arc<Term> {
+        Arc::new(self.to_term())
+    }
+}
+
+pub trait ToTerm: ToArcTerm {
+    fn to_term(self) -> Term;
 }
 
 impl ToTerm for Term {

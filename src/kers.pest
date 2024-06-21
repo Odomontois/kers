@@ -10,10 +10,10 @@ atomic_term   =  { internal | reflect | record | string | natural | identifier |
 empty         =  { "()" }
 modifier      =  { "@" }
 reflect       =  { "@@" }
-universe      =  { "*" }
-internal      = ${ "#" ~ (internal_int | internal_text) }
+internal      = ${ "#" ~ (internal_int | internal_text | internal_type) }
 internal_int  =  { "int" }
 internal_text =  { "text" }
+internal_type =  { "type" }
 
 separator = _{ "," | ";" }
 key       =  { identifier | string }
