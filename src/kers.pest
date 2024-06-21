@@ -1,7 +1,8 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
 term          =  { lam_sequence }
-lam_sequence  =  { intersection ~ ("->" ~ intersection)* }
+lam_sequence  =  { func_sequence ~ ("=>" ~ func_sequence)* }
+func_sequence =  { intersection ~ ("->" ~ intersection)* }
 intersection  =  { application ~ ("&" ~ application)* }
 application   =  { then_chain ~ (then_chain)* }
 then_chain    =  { modified_term ~ ("." ~ modified_term)* }

@@ -105,9 +105,19 @@ fn record(expr: Parsed) -> DecodingTerm {
 fn lam_sequence(expr: Parsed) -> DecodingTerm {
     sequence(
         expr,
+        Rule::func_sequence,
+        func_sequence,
+        |body, dom| Term::Lambda { dom, body }.to_arc_term(),
+        Assocciation::Right,
+    )
+}
+
+fn func_sequence(expr: Parsed) -> DecodingTerm {
+    sequence(
+        expr,
         Rule::intersection,
         intersection,
-        |dom, codom| Type::Function { dom, codom }.to_arc_term(),
+        |codom, dom| Type::Function { dom, codom }.to_arc_term(),
         Assocciation::Right,
     )
 }
