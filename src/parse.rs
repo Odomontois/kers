@@ -1,5 +1,5 @@
 use core::panic;
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use pest::Parser;
 use pest_derive::Parser;
@@ -8,7 +8,7 @@ use pest_derive::Parser;
 use crate::language::term;
 use crate::Term;
 #[cfg(test)]
-use crate::ToArcTerm;
+use crate::ToBoxTerm;
 
 mod decode;
 mod error;
@@ -19,7 +19,7 @@ pub use error::SyntaxError;
 pub struct Kers;
 
 #[allow(unused)]
-pub(crate) fn parse_term(input: &str) -> Result<Arc<Term>, SyntaxError> {
+pub(crate) fn parse_term(input: &str) -> Result<Box<Term>, SyntaxError> {
     let mut top = Kers::parse(Rule::term, input)?;
     decode::term(top.read(Rule::term)?)
 }
@@ -71,7 +71,7 @@ fn check_object() {
             ("my \"agy\"", 38u64.to_term()),
             ("xxx", term::get("xxx"))
         ]
-        .to_arc_term()
+        .to_box_term()
     )
 }
 
@@ -79,7 +79,7 @@ fn check_object() {
 fn check_empty_object() {
     let input = "()";
     let res = parse_term(input).unwrap_print();
-    assert_eq!(res, Term::Empty.to_arc_term())
+    assert_eq!(res, Term::Empty.to_box_term())
 }
 
 use self::decode::PairsExt;
@@ -95,21 +95,21 @@ fn check_record_type() {
             ("my \"agy\"", term::get("int")),
             ("xxx", term::get("xxx")),
         ])
-        .to_arc_term()
+        .to_box_term()
     )
 }
 
 #[test]
 fn check_unit_type() {
     let res = parse_term("{}").unwrap_print();
-    assert_eq!(res, PrimType::Any.to_arc_term());
+    assert_eq!(res, PrimType::Any.to_box_term());
 }
 
 #[test]
 fn check_builtin_types() {
     let text_res = parse_term("#text").unwrap_print();
-    assert_eq!(text_res, PrimType::Text.to_arc_term());
+    assert_eq!(text_res, PrimType::Text.to_box_term());
 
     let int_res = parse_term("#int").unwrap_print();
-    assert_eq!(int_res, PrimType::Long.to_arc_term());
+    assert_eq!(int_res, PrimType::Long.to_box_term());
 }

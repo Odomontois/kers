@@ -1,15 +1,14 @@
 mod to_term;
 
-pub use self::to_term::{AsTyp, ToArcTerm, ToTerm};
+pub use self::to_term::{AsTyp, ToBoxTerm, ToTerm};
 use derive_more::From;
-use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GenType<T> {
     Prim(PrimType),
-    Field { name: Key, typ: Arc<T> },
-    Function { dom: Arc<T>, codom: Arc<T> },
-    And { left: Arc<T>, right: Arc<T> },
+    Field { name: Key, typ: Box<T> },
+    Function { dom: Box<T>, codom: Box<T> },
+    And { left: Box<T>, right: Box<T> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -68,12 +67,12 @@ pub enum Term {
     Type(Type),
     Prim(Primitive),
     Empty,
-    Append { left: Arc<Term>, right: Arc<Term> },
-    Set { name: Key, value: Arc<Term> },
+    Append { left: Box<Term>, right: Box<Term> },
+    Set { name: Key, value: Box<Term> },
     Get(Key),
-    Lambda { dom: Arc<Term>, body: Arc<Term> },
-    Unlambda(Arc<Term>),
-    Then { first: Arc<Term>, next: Arc<Term> },
+    Lambda { dom: Box<Term>, body: Box<Term> },
+    Unlambda(Box<Term>),
+    Then { first: Box<Term>, next: Box<Term> },
     Reflect,
 }
 

@@ -1,27 +1,26 @@
-use std::sync::Arc;
 
 use crate::{Key, PrimType, Term, Type};
 
 use crate::language::term::Primitive;
 
-pub trait ToArcTerm: Sized {
-    fn to_arc_term(self) -> Arc<Term>;
+pub trait ToBoxTerm: Sized {
+    fn to_box_term(self) -> Box<Term>;
 
-    fn to_arc_ok<E>(self) -> Result<Arc<Term>, E> {
-        Ok(self.to_arc_term())
+    fn to_box_ok<E>(self) -> Result<Box<Term>, E> {
+        Ok(self.to_box_term())
     }
 
-    fn apply(self, args: impl ToArcTerm) -> Term {
+    fn apply(self, args: impl ToBoxTerm) -> Term {
         Term::Then {
-            first: args.to_arc_term(),
-            next: Term::Unlambda(self.to_arc_term()).to_arc_term(),
+            first: args.to_box_term(),
+            next: Term::Unlambda(self.to_box_term()).to_box_term(),
         }
     }
 
-    fn and(self, other: impl ToArcTerm) -> Term {
+    fn and(self, other: impl ToBoxTerm) -> Term {
         Type::And {
-            left: self.to_arc_term(),
-            right: other.to_arc_term(),
+            left: self.to_box_term(),
+            right: other.to_box_term(),
         }
         .to_term()
     }
@@ -29,40 +28,40 @@ pub trait ToArcTerm: Sized {
     fn field(self, name: impl Into<Key>) -> Term {
         Type::Field {
             name: name.into(),
-            typ: self.to_arc_term(),
+            typ: self.to_box_term(),
         }
         .to_term()
     }
 
-    fn function(self, codom: impl ToArcTerm) -> Term {
+    fn function(self, codom: impl ToBoxTerm) -> Term {
         Type::Function {
-            dom: self.to_arc_term(),
-            codom: codom.to_arc_term(),
+            dom: self.to_box_term(),
+            codom: codom.to_box_term(),
         }
         .to_term()
     }
 
-    fn lambda(self, body: impl ToArcTerm) -> Term {
+    fn lambda(self, body: impl ToBoxTerm) -> Term {
         Term::Lambda {
-            dom: self.to_arc_term(),
-            body: body.to_arc_term(),
+            dom: self.to_box_term(),
+            body: body.to_box_term(),
         }
     }
 }
 
-impl ToArcTerm for Arc<Term> {
-    fn to_arc_term(self) -> Arc<Term> {
+impl ToBoxTerm for Box<Term> {
+    fn to_box_term(self) -> Box<Term> {
         self
     }
 }
 
-impl<T: ToTerm> ToArcTerm for T {
-    fn to_arc_term(self) -> Arc<Term> {
-        Arc::new(self.to_term())
+impl<T: ToTerm> ToBoxTerm for T {
+    fn to_box_term(self) -> Box<Term> {
+        Box::new(self.to_term())
     }
 }
 
-pub trait ToTerm: ToArcTerm {
+pub trait ToTerm: ToBoxTerm {
     fn to_term(self) -> Term;
 }
 
@@ -112,7 +111,7 @@ impl<S: ToString, A: ToTerm> ToTerm for (S, A) {
     fn to_term(self) -> Term {
         Term::Set {
             name: self.0.to_string().into(),
-            value: self.1.to_arc_term(),
+            value: self.1.to_box_term(),
         }
     }
 }
@@ -120,11 +119,11 @@ impl<S: ToString, A: ToTerm> ToTerm for (S, A) {
 fn reduce_term<I: ToTerm, R: ToTerm, D: ToTerm>(
     is: impl IntoIterator<Item = I>,
     d: D,
-    f: impl Fn(Arc<Term>, Arc<Term>) -> R,
+    f: impl Fn(Box<Term>, Box<Term>) -> R,
 ) -> Term {
     is.into_iter()
         .map(ToTerm::to_term)
-        .reduce(|x, y| f(x.to_arc_term(), y.to_arc_term()).to_term())
+        .reduce(|x, y| f(x.to_box_term(), y.to_box_term()).to_term())
         .unwrap_or(d.to_term())
 }
 
@@ -158,7 +157,7 @@ where
         let AsTyp((name, typ)) = self;
         Type::Field {
             name: name.to_string().into(),
-            typ: AsTyp(typ).to_arc_term(),
+            typ: AsTyp(typ).to_box_term(),
         }
         .to_term()
     }
@@ -169,7 +168,7 @@ where
     AsTyp<X>: ToTerm,
 {
     fn to_term(self) -> Term {
-        let and = |left, right: Arc<Term>| Type::And { left, right }.to_term();
+        let and = |left, right: Box<Term>| Type::And { left, right }.to_term();
         reduce_term(self.0.iter().cloned().map(AsTyp), PrimType::Universe, and)
     }
 }
@@ -179,7 +178,7 @@ where
     AsTyp<X>: ToTerm,
 {
     fn to_term(self) -> Term {
-        let and = |left, right: Arc<Term>| Type::And { left, right }.to_term();
+        let and = |left, right: Box<Term>| Type::And { left, right }.to_term();
         reduce_term(self.0.into_iter().map(AsTyp), PrimType::Universe, and)
     }
 }

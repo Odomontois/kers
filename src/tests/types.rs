@@ -1,7 +1,7 @@
 use crate::language::term::get;
 use crate::language::term::PrimType::{Long, Text};
 use crate::parse::parse_term;
-use crate::ToArcTerm;
+use crate::ToBoxTerm;
 #[test]
 fn test1() {
     let t = parse_term(
@@ -9,7 +9,7 @@ fn test1() {
          { x: y }
         "##,
     );
-    assert_eq!(t, get("y").field("x").to_arc_ok());
+    assert_eq!(t, get("y").field("x").to_box_ok());
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn test2() {
         Long.field("x")
             .and(Long.field("y"))
             .function(Text)
-            .to_arc_ok()
+            .to_box_ok()
     );
 
     println!("{t:?}");

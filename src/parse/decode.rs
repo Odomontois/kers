@@ -1,14 +1,12 @@
-use std::sync::Arc;
-
 use pest::iterators::Pair;
 
-use crate::{Key, PrimType, Term, ToArcTerm, ToTerm, Type};
+use crate::{Key, PrimType, Term, ToBoxTerm, ToTerm, Type};
 
 use super::{Rule, SyntaxError};
 
 type Parsed<'a> = Pair<'a, Rule>;
 type Decoding<A> = Result<A, SyntaxError>;
-type DecodingTerm = Decoding<Arc<Term>>;
+type DecodingTerm = Decoding<Box<Term>>;
 
 pub(super) fn term(term: Parsed) -> DecodingTerm {
     lam_sequence(term.into_inner().read(Rule::lam_sequence)?)
@@ -97,7 +95,7 @@ fn record(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::assignment,
         assignment,
-        |left, right| Term::Append { left, right }.to_arc_term(),
+        |left, right| Term::Append { left, right }.to_box_term(),
         Assocciation::Left,
     )
 }
@@ -107,7 +105,7 @@ fn lam_sequence(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::func_sequence,
         func_sequence,
-        |body, dom| Term::Lambda { dom, body }.to_arc_term(),
+        |body, dom| Term::Lambda { dom, body }.to_box_term(),
         Assocciation::Right,
     )
 }
@@ -117,7 +115,7 @@ fn func_sequence(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::intersection,
         intersection,
-        |codom, dom| Type::Function { dom, codom }.to_arc_term(),
+        |codom, dom| Type::Function { dom, codom }.to_box_term(),
         Assocciation::Right,
     )
 }
@@ -127,7 +125,7 @@ fn intersection(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::application,
         application,
-        |left, right| Type::And { left, right }.to_arc_term(),
+        |left, right| Type::And { left, right }.to_box_term(),
         Assocciation::Left,
     )
 }
@@ -137,7 +135,7 @@ fn application(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::then_chain,
         then_chain,
-        |func, args| func.apply(args).to_arc_term(),
+        |func, args| func.apply(args).to_box_term(),
         Assocciation::Left,
     )
 }
@@ -147,7 +145,7 @@ fn then_chain(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::modified_term,
         modifed_term,
-        |first, next| Term::Then { first, next }.to_arc_term(),
+        |first, next| Term::Then { first, next }.to_box_term(),
         Assocciation::Left,
     )
 }
@@ -157,19 +155,19 @@ fn record_type(expr: Parsed) -> DecodingTerm {
         expr,
         Rule::ascription,
         ascription,
-        |left, right| Type::And { left, right }.to_arc_term(),
+        |left, right| Type::And { left, right }.to_box_term(),
         Assocciation::Left,
     )
 }
 
 fn key_value_pair<R: ToTerm>(
     input: Parsed,
-    fterm: impl FnOnce(Key, Arc<Term>) -> R,
+    fterm: impl FnOnce(Key, Box<Term>) -> R,
 ) -> DecodingTerm {
     let mut input = input.into_inner();
     let name = key(input.read(Rule::key)?)?.into();
     let value = term(input.read(Rule::term)?)?;
-    fterm(name, value).to_arc_ok()
+    fterm(name, value).to_box_ok()
 }
 
 fn assignment(input: Parsed) -> DecodingTerm {
@@ -186,7 +184,7 @@ fn modifed_term(expr: Parsed) -> DecodingTerm {
     subs.try_fold(atomic, |term, sub: Pair<'_, Rule>| {
         sub.check(Rule::modifier)?;
         match sub.as_str() {
-            "@" => Term::Unlambda(term).to_arc_ok(),
+            "@" => Term::Unlambda(term).to_box_ok(),
             s => Err(format!("Unknown modifier {s}").into()),
         }
     })
@@ -195,9 +193,9 @@ fn modifed_term(expr: Parsed) -> DecodingTerm {
 fn internal(expr: Parsed) -> DecodingTerm {
     let sub = expr.into_inner().next().ok_or("Empty internal")?;
     match sub.as_rule() {
-        Rule::internal_int => PrimType::Long.to_arc_ok(),
-        Rule::internal_text => PrimType::Text.to_arc_ok(),
-        Rule::internal_type => PrimType::Universe.to_arc_ok(),
+        Rule::internal_int => PrimType::Long.to_box_ok(),
+        Rule::internal_text => PrimType::Text.to_box_ok(),
+        Rule::internal_type => PrimType::Universe.to_box_ok(),
         other => Err(format!("Expecting internal, got {other:?}").into()),
     }
 }
@@ -207,14 +205,14 @@ fn atomic_term(term: Parsed) -> DecodingTerm {
 
     match term.as_rule() {
         Rule::record => record(term),
-        Rule::string => string(term)?.to_arc_ok(),
-        Rule::natural => natural(term)?.to_arc_ok(),
+        Rule::string => string(term)?.to_box_ok(),
+        Rule::natural => natural(term)?.to_box_ok(),
         Rule::identifier => get(term),
-        Rule::reflect => Term::Reflect.to_arc_ok(),
+        Rule::reflect => Term::Reflect.to_box_ok(),
         Rule::record_type => record_type(term), // Add missing function call
-        Rule::empty => Term::Empty.to_arc_ok(),
+        Rule::empty => Term::Empty.to_box_ok(),
         Rule::internal => internal(term),
-        Rule::unit_type => PrimType::Any.to_arc_ok(),
+        Rule::unit_type => PrimType::Any.to_box_ok(),
         rule => Err(format!("Not an atomic term {rule:?}").into()), // Rule::string =>
     }
 }
@@ -256,5 +254,5 @@ fn natural(term: Parsed) -> Decoding<u64> {
 
 fn get(term: Parsed) -> DecodingTerm {
     let name = term.as_str().to_string().into();
-    Term::Get(name).to_arc_ok()
+    Term::Get(name).to_box_ok()
 }
