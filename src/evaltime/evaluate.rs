@@ -12,6 +12,7 @@ pub(crate) enum EvalError {
 use crate::Term;
 
 use super::values::Value;
+pub(crate) type Res<T> = Result<T, EvalError>;
 
 impl Runtime {
     #[allow(unused)]
@@ -19,7 +20,7 @@ impl Runtime {
         todo!("new")
     }
 
-    pub fn eval<'a>(&'a mut self, term: &Term, context: &Value) -> Result<Value, EvalError> {
+    pub fn eval<'a>(&'a mut self, term: &Term, context: &Value) -> Res<Value> {
         Ok(match term {
             Term::Empty => Value::Record(vec![]),
             Term::Reflect => context.clone(),

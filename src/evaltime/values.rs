@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::sync::Arc;
 
 use crate::evaltime::interpreter::Interpteter;
-use crate::{test_size, PrimType, Primitive, Term};
+use crate::{test_size, Key, PrimType, Primitive, Term};
 
 #[derive(Clone, Debug)]
 pub(crate) enum TypeValue {
@@ -11,6 +11,7 @@ pub(crate) enum TypeValue {
     Record(RecordType),
 }
 
+use super::evaluate::Res;
 use super::external::ExternalValue;
 use super::record::RecordType;
 
@@ -28,15 +29,23 @@ impl TypeValue {
 }
 
 #[derive(Clone, Debug)]
+pub(crate) enum AbstractValue {
+    Variable(usize),
+    Got { source: Arc<Value>, key: Key },
+    Applied { func: Arc<Value>, arg: Arc<Value> },
+}
+
+#[derive(Clone, Debug)]
 pub(crate) enum Value {
     Prim(Primitive),
     Type(TypeValue),
-    Variable(usize),
+    Abstract(AbstractValue),
     Record(Vec<Value>),
-    Lambda { dom: Box<Value>, term: Box<Term> },
+    External(ExternalValue),
 }
 pub struct TypedValue {
     value: Value,
+    typ: Option<Arc<TypeValue>>
 }
 
 test_size!(test_value Value TypedValue);
@@ -52,5 +61,9 @@ impl Value {
             }
             (_, with) => with,
         }
+    }
+
+    pub(crate) fn as_abstract(&self, arg: &Value) -> Res<Value> {
+        Err
     }
 }

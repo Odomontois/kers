@@ -1,6 +1,5 @@
 #[derive(Debug, Clone, Copy)]
 pub enum ExternalValue {
-    Integer(i64),
     IntegerOp(IntegerOperation),
 }
 
