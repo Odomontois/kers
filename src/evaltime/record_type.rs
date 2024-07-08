@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::Key;
 
-use super::values::Value;
+use super::{values::Value, Renaming, RenamingError};
 
 type Places = HashMap<Key, usize>;
 
@@ -29,5 +29,21 @@ impl RecordType {
                 .map(|(i, (k, _))| (k.clone(), i))
                 .collect()
         })
+    }
+
+    #[allow(unused)]
+    fn rename<V>(source: &mut RecordType, target: &RecordType) -> Result<Renaming, RenamingError> {
+        let source = source.field_places();
+        target
+            .fields
+            .iter()
+            .map(|(key, _)| {
+                source
+                    .get(key)
+                    .copied()
+                    .ok_or_else(|| RenamingError::MissingKey(key.clone()))
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(|v| v.into())
     }
 }

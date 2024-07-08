@@ -15,3 +15,9 @@ pub enum EvalError {
 pub enum Feature {
     ToAbstract,
 }
+
+impl Feature {
+    pub fn not_implemented<A>(self) -> Result<A, EvalError> {
+        Err(EvalError::NotImplemented { feature: self })
+    }
+}

@@ -2,16 +2,9 @@ use thiserror::Error;
 
 pub struct Runtime {}
 
-#[allow(unused)]
-#[derive(Error, Debug)]
-pub(crate) enum EvalError {
-    #[error("Value is not a function, {info}")]
-    ValueIsNotAFunction { plugin_name: String, info: String },
-}
-
 use crate::Term;
 
-use super::values::Value;
+use super::{Record, Value, EvalError};
 pub(crate) type Res<T> = Result<T, EvalError>;
 
 impl Runtime {
@@ -22,7 +15,7 @@ impl Runtime {
 
     pub fn eval<'a>(&'a mut self, term: &Term, context: &Value) -> Res<Value> {
         Ok(match term {
-            Term::Empty => Value::Record(vec![]),
+            Term::Empty => Value::Record(Record::default()),
             Term::Reflect => context.clone(),
             Term::Append { left, right } => {
                 let left = self.eval(left, context)?;

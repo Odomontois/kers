@@ -2,45 +2,37 @@ use std::collections::HashMap;
 
 use crate::Key;
 
-use super::values::Value;
+use super::{values::Value, Renaming};
 use derive_more::From;
 
-#[derive(Clone, From)]
-pub(crate) enum Renaming {
-    Identity,
-    Permutation(Vec<usize>),
-}
-
+#[derive(Debug, Clone)]
 pub enum RecordData {
     Plain(Vec<Value>),
 }
 
+impl Default for RecordData {
+    fn default() -> Self {
+        RecordData::Plain(Vec::new())
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub(crate) struct Record {
     data: RecordData,
     renaming: Renaming,
 }
 
-
-
-pub enum RenamingError {
-    MissingKey(Key),
+impl Record {
+    pub(crate) fn extend(&self, with: Record) -> Record {
+        let mut data = self.data.clone();
+        match (data, with.data) {
+            (RecordData::Plain(mut left), RecordData::Plain(right)) => {
+                left.extend(right);
+                Record {
+                    data: RecordData::Plain(left),
+                    renaming: self.renaming.clone(),
+                }
+            }
+        }
+    }
 }
-
-#[allow(unused)]
-fn rename<V>(source: &mut RecordType, target: &RecordType) -> Result<Renaming, RenamingError> {
-    let source = source.field_places();
-    target
-        .fields
-        .iter()
-        .map(|(key, _)| {
-            source
-                .get(key)
-                .copied()
-                .ok_or_else(|| RenamingError::MissingKey(key.clone()))
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .map(|v| v.into())
-}
-
-#[test]
-fn test() {}

@@ -13,7 +13,7 @@ pub(crate) enum TypeValue {
 
 use super::evaluate::Res;
 use super::external::ExternalValue;
-use super::record::RecordType;
+use super::{EvalError, Feature, Record, RecordType};
 
 impl TypeValue {
     pub(crate) fn extend(&self, with: TypeValue) -> TypeValue {
@@ -40,12 +40,13 @@ pub(crate) enum Value {
     Prim(Primitive),
     Type(TypeValue),
     Abstract(AbstractValue),
-    Record(Vec<Value>),
+    Record(Record),
     External(ExternalValue),
+    Lambda { body: Arc<Value>, depth: usize },
 }
 pub struct TypedValue {
     value: Value,
-    typ: Option<Arc<TypeValue>>
+    typ: Option<Arc<TypeValue>>,
 }
 
 test_size!(test_value Value TypedValue);
@@ -56,14 +57,15 @@ impl Value {
 
         match (self, with) {
             (Record(left), Record(mut right)) => {
-                right.extend(left.clone());
-                Record(right)
+                let mut res = left.clone();
+                res.extend(right.clone());
+                Record(res)
             }
             (_, with) => with,
         }
     }
 
     pub(crate) fn as_abstract(&self, arg: &Value) -> Res<Value> {
-        Err
+        Feature::ToAbstract.not_implemented()
     }
 }
