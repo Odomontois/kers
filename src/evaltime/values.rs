@@ -1,11 +1,10 @@
 use std::fmt::Debug;
 use std::sync::Arc;
 
-use crate::evaltime::interpreter::Interpteter;
 use crate::{test_size, Key, PrimType, Primitive, Term};
 
 #[derive(Clone, Debug)]
-pub(crate) enum TypeValue {
+pub enum TypeValue {
     Prim(PrimType),
     Function { dom: Arc<Value>, codom: Arc<Value> },
     Record(RecordType),
@@ -29,14 +28,14 @@ impl TypeValue {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) enum AbstractValue {
+pub enum AbstractValue {
     Variable(usize),
     Got { source: Arc<Value>, key: Key },
     Applied { func: Arc<Value>, arg: Arc<Value> },
 }
 
 #[derive(Clone, Debug)]
-pub(crate) enum Value {
+pub enum Value {
     Prim(Primitive),
     Type(TypeValue),
     Abstract(AbstractValue),

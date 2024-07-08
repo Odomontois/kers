@@ -8,7 +8,6 @@ use super::{Record, Value, EvalError};
 pub(crate) type Res<T> = Result<T, EvalError>;
 
 impl Runtime {
-    #[allow(unused)]
     pub fn new() -> Self {
         todo!("new")
     }

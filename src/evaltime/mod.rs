@@ -1,6 +1,5 @@
 #[allow(unused)]
 mod evaluate;
-mod interpreter;
 #[allow(unused)]
 mod record;
 
@@ -23,7 +22,7 @@ pub(crate) use values::Value;
 #[allow(unused)]
 mod external;
 
-pub(crate) use evaluate::Runtime;
+pub use evaluate::Runtime;
 
 #[allow(unused)]
 mod error;

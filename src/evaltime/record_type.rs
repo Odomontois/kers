@@ -7,7 +7,7 @@ use super::{values::Value, Renaming, RenamingError};
 type Places = HashMap<Key, usize>;
 
 #[derive(Clone, Debug)]
-pub(crate) struct RecordType {
+pub struct RecordType {
     fields: Vec<(Key, Value)>,
     fields_places: Option<Places>,
 }

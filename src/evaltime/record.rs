@@ -17,7 +17,7 @@ impl Default for RecordData {
 }
 
 #[derive(Debug, Clone, Default)]
-pub(crate) struct Record {
+pub struct Record {
     data: RecordData,
     renaming: Renaming,
 }
