@@ -37,3 +37,12 @@ impl Add<Record> for Record {
         }
     }
 }
+
+impl<const N: usize> From<[Value; N]> for Record {
+    fn from(data: [Value; N]) -> Self {
+        Record {
+            data: RecordData::Plain(data.to_vec()),
+            renaming: Renaming::Identity,
+        }
+    }
+}

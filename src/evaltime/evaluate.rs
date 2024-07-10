@@ -80,7 +80,10 @@ impl Runtime {
             Term::Get(key) => context.get(key),
             Term::Type(t) => self.eval_typ(t, context),
             Term::Prim(_) => Feature::Evaluation("prim").not_implemented(),
-            Term::Set { name, value } => Feature::Evaluation("set").not_implemented(),
+            Term::Set { name, value } => {
+                let value = self.eval(value, context)?;
+                Ok(Value::Record([value].into()))
+            }
         }
     }
 
