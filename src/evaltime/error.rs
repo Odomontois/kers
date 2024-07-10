@@ -18,6 +18,8 @@ pub enum EvalError {
 pub enum Feature {
     ToAbstract,
     Synthesize,
+    Evaluation,
+    Apply,
 }
 
 impl Feature {

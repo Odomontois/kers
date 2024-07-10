@@ -63,12 +63,13 @@ impl Add<Value> for Value {
 }
 
 impl Value {
+    pub(crate) fn apply(&self, arg: Value) -> Res<Value> {
+        Feature::Apply.not_implemented()
+    }
+
     pub(crate) fn as_abstract(&self, arg: &Value) -> Res<Value> {
         Feature::ToAbstract.not_implemented()
     }
 
-    /** synthesizing a value corresponding to a type possily allocating some variables along the way*/
-    pub(crate) fn synthesize(&self, rt: &mut Runtime) -> Res<Value> {
-        Feature::Synthesize.not_implemented()
-    }
+
 }
