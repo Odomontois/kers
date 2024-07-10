@@ -11,7 +11,7 @@ pub enum GenType<T> {
     And { left: Box<T>, right: Box<T> },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PrimType {
     Text,
     Long,

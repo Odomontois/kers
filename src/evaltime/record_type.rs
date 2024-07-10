@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Add};
 
 use crate::Key;
 
@@ -12,15 +12,37 @@ pub struct RecordType {
     fields_places: Option<Places>,
 }
 
-impl RecordType {
-    pub fn extend(&self, with: RecordType) -> RecordType {
-        let mut fields = self.fields.clone();
-        fields.extend(with.fields);
+impl Add for RecordType {
+    type Output = RecordType;
+    fn add(self, rhs: RecordType) -> RecordType {
+        let mut fields = self.fields;
+        fields.extend(rhs.fields);
         RecordType {
             fields,
             fields_places: None,
         }
     }
+}
+
+impl FromIterator<(Key, Value)> for RecordType {
+    fn from_iter<T: IntoIterator<Item = (Key, Value)>>(iter: T) -> Self {
+        RecordType {
+            fields: iter.into_iter().collect(),
+            fields_places: None,
+        }
+    }
+}
+
+impl<const N: usize> From<[(Key, Value); N]> for RecordType {
+    fn from(arr: [(Key, Value); N]) -> Self {
+        RecordType {
+            fields: arr.to_vec(),
+            fields_places: None,
+        }
+    }
+}
+
+impl RecordType {
     pub fn field_places(&mut self) -> &Places {
         self.fields_places.get_or_insert_with(|| {
             self.fields
