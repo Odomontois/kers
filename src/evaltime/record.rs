@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Add};
 
 use crate::Key;
 
@@ -22,15 +22,16 @@ pub struct Record {
     renaming: Renaming,
 }
 
-impl Record {
-    pub(crate) fn extend(&self, with: Record) -> Record {
+impl Add<Record> for Record {
+    type Output = Record;
+    fn add(self, rhs: Record) -> Record {
         let mut data = self.data.clone();
-        match (data, with.data) {
+        match (data, &rhs.data) {
             (RecordData::Plain(mut left), RecordData::Plain(right)) => {
-                left.extend(right);
+                left.extend(right.iter().cloned());
                 Record {
                     data: RecordData::Plain(left),
-                    renaming: self.renaming.clone(),
+                    renaming: &self.renaming + &rhs.renaming,
                 }
             }
         }

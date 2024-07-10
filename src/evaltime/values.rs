@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::ops::Add;
 use std::sync::Arc;
 
 use crate::{test_size, Key, PrimType, Primitive, Term};
@@ -12,7 +13,7 @@ pub enum TypeValue {
 
 use super::evaluate::Res;
 use super::external::ExternalValue;
-use super::{EvalError, Feature, Record, RecordType};
+use super::{EvalError, Feature, Record, RecordType, Runtime};
 
 impl TypeValue {
     pub(crate) fn extend(&self, with: TypeValue) -> TypeValue {
@@ -41,30 +42,33 @@ pub enum Value {
     Abstract(AbstractValue),
     Record(Record),
     External(ExternalValue),
-    Lambda { body: Arc<Value>, depth: usize },
+    Lambda { body: Arc<Value>, outer: usize },
 }
 pub struct TypedValue {
     value: Value,
-    typ: Option<Arc<TypeValue>>,
+    typ: Option<Arc<Value>>,
 }
 
 test_size!(test_value Value TypedValue);
 
-impl Value {
-    pub(crate) fn extend(&self, with: Value) -> Value {
+impl Add<Value> for Value {
+    type Output = Value;
+    fn add(self, rhs: Value) -> Value {
         use Value::*;
-
-        match (self, with) {
-            (Record(left), Record(mut right)) => {
-                let mut res = left.clone();
-                res.extend(right.clone());
-                Record(res)
-            }
-            (_, with) => with,
+        match (self, rhs) {
+            (Record(left), Record(right)) => Record(left + right),
+            _ => todo!("add non records"),
         }
     }
+}
 
+impl Value {
     pub(crate) fn as_abstract(&self, arg: &Value) -> Res<Value> {
         Feature::ToAbstract.not_implemented()
+    }
+
+    /** synthesizing a value corresponding to a type possily allocating some variables along the way*/
+    pub(crate) fn synthesize(&self, rt: &mut Runtime) -> Res<Value> {
+        Feature::Synthesize.not_implemented()
     }
 }
