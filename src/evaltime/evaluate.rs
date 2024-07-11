@@ -11,7 +11,7 @@ pub struct Runtime {
     depth: usize,
 }
 
-use crate::{GenType, Term, ToBoxTerm, Type};
+use crate::{GenType, Primitive, Term, ToBoxTerm, Type};
 
 use super::{values::TypeValue, EvalError, Feature, Record, RecordType, Value};
 pub(crate) type Res<T> = Result<T, EvalError>;
@@ -79,7 +79,7 @@ impl Runtime {
 
             Term::Get(key) => context.get(key),
             Term::Type(t) => self.eval_typ(t, context),
-            Term::Prim(_) => Feature::Evaluation("prim").not_implemented(),
+            Term::Prim(p) => Ok(Value::Prim(p.clone())),
             Term::Set { name, value } => {
                 let value = self.eval(value, context)?;
                 Ok(Value::Record([value].into()))
