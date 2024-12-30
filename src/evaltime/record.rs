@@ -1,3 +1,5 @@
+pub(crate) mod recs;
+pub(crate) mod renaming;
 use std::{collections::HashMap, ops::Add};
 
 use crate::Key;

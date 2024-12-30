@@ -9,10 +9,7 @@ pub(crate) use record::Record;
 mod record_type;
 pub(crate) use record_type::RecordType;
 
-#[allow(unused)]
-mod renaming;
-pub(crate) use renaming::{Renaming, RenamingError};
-
+pub(crate) use record::renaming::{Renaming, RenamingError};
 
 mod adapt;
 #[allow(unused)]

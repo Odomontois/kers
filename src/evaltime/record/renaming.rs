@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Index};
 
 use crate::Key;
 use derive_more::From;
@@ -21,7 +21,16 @@ impl Add<&Renaming> for &Renaming {
     fn add(self, rhs: &Renaming) -> Renaming {
         match (self, rhs) {
             (Identity, Identity) => Identity,
-            _ => todo!("renaming add")
+            _ => todo!("renaming add"),
+        }
+    }
+}
+
+impl Renaming {
+    pub fn get(&self, index: usize) -> usize {
+        match self {
+            Identity => index,
+            Permutation(perm) => perm.get(index).copied().unwrap_or(0),
         }
     }
 }

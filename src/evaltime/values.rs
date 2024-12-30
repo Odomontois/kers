@@ -51,6 +51,8 @@ pub enum Value {
         outer: usize,
     },
 }
+
+#[derive(Clone, Debug, From)]
 pub struct TypedValue {
     value: Value,
     typ: Option<Arc<Value>>,
