@@ -1,0 +1,14 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+integer = @{
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ("_" | ASCII_DIGIT)*)
+}
+
+lambda = {
+    "[" ~ integer ~ "] -> " ~ expr
+}
+
+expr = {
+    integer 
+}
